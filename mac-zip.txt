@@ -1,0 +1,4 @@
+For Mac users, please don't use the right-click —> compress method. Instead, use Terminal to zip your main.cpp file and not anything else. This is because the macOS GUI zipper adds extra stuff to the archive that Macs can't see, but Windows and Linux users can.
+
+cd path/to/lab1
+zip e0XXXXXX_lab1.zip ./main.cpp
