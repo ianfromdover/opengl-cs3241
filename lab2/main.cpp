@@ -1,8 +1,10 @@
 //============================================================
 // STUDENT NAME: Hong Yi En, Ian
-// NUS User ID.: A0217685U
+// NUS User ID.: E0543721
 // COMMENTS TO GRADER:
 //
+// Helper functions are defined right above the functions in which
+// they are first needed
 // ============================================================
 
 #include <stdlib.h>
@@ -11,7 +13,8 @@
 #include <time.h>
 
 #ifdef __APPLE__
-#define GL_SILENCE_DEPRECATION
+// #define GL_SILENCE_DEPRECATION
+// TODO: uncomment on submission
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
@@ -144,6 +147,10 @@ void DrawOneCar( float bodyColor[3] )
     //
     // Draw the car body.
     //****************************
+    
+    // top cube
+    glScaled( CAR_LENGTH, CAR_WIDTH, CAR_HEIGHT );
+    glutSolidCube(1); // size
 
     glColor3fv(tyreColor);
 
@@ -160,6 +167,11 @@ void DrawOneCar( float bodyColor[3] )
 // Draw all the cars. Each is put correctly on its great circle.
 /////////////////////////////////////////////////////////////////////////////
 
+double degToRad( double theta )
+{
+    return theta * ( PI / 180 );
+}
+
 void DrawAllCars( void )
 {
     for ( int i = 0; i < NUM_CARS; i++ )
@@ -167,6 +179,19 @@ void DrawAllCars( void )
         //****************************
         // WRITE YOUR CODE HERE.
         //****************************
+
+        // cars not facing off planet's surface
+        glPushMatrix();
+            double x, z; // for translation of car onto its pos on circle
+            x = PLANET_RADIUS * cos( degToRad( car[i].angularPos ) );
+            z = PLANET_RADIUS * sin( degToRad( car[i].angularPos ) );
+
+            // for this rotate, need angularpos also
+            glRotatef( car[i].rotAngle, car[i].xzAxis[0], 0, car[i].xzAxis[1] );
+            glRotatef( car[i].angularPos, 0, 1, 0 ); // this one was anyhow but the cars seem to be spinning
+            glTranslated( -x, 0, -z );
+            DrawOneCar( car[i].bodyColor );
+        glPopMatrix();
     }
 }
 
@@ -223,7 +248,9 @@ void MyDisplay( void )
     // the predefined constant CLIP_PLANE_DIST to position your near and
     // far planes.
     //***********************************************************************
-    gluPerspective( VERT_FOV, (double)winWidth / winHeight, 50.0, 600.0 );
+    gluPerspective( VERT_FOV, (double)winWidth / winHeight, 
+                    50, 600);
+                    // CLIP_PLANE_DIST, -CLIP_PLANE_DIST );
 
 
     glMatrixMode( GL_MODELVIEW );
@@ -235,8 +262,12 @@ void MyDisplay( void )
     // Modify the following line of code to set up the view transformation.
     // You may use the gluLookAt() function, but you can use other method.
     //***********************************************************************
-    gluLookAt( 0.0, 0.0, eyeDistance, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 );
-
+    double eyeX = eyeDistance * sin( degToRad( eyeLongitude ) );
+    double eyeY = eyeDistance * sin( degToRad( eyeLatitude ) );
+    double eyeZ = eyeDistance 
+        * cos( degToRad( eyeLongitude ) )
+        * cos( degToRad( eyeLatitude ) );
+    gluLookAt( eyeX, eyeY, eyeZ, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 );
 
     // Set world positions of the two lights.
     glLightfv( GL_LIGHT0, GL_POSITION, light0Position );
@@ -248,6 +279,42 @@ void MyDisplay( void )
     // Draw planet.
     glColor3fv( planetColor );
     glutSolidSphere( PLANET_RADIUS, 72, 36 );
+    // TODO: move to car section
+    // ---------------------------------------- //
+    // ------------------car test-------------- //
+    // ---------------------------------------- //
+    
+    /*
+    // top box
+    glPushMatrix(); // for camera
+                    // temporarily, swap y and z for viewing purposes
+        glTranslated( -CAR_LENGTH / 6, CAR_HEIGHT * ( 13 / 16 ), 0 );
+        glScaled( CAR_LENGTH * ( 2 / 3 ), CAR_HEIGHT * ( 3 / 8 ), CAR_WIDTH );
+        glutSolidCube( 1 );
+    glPopMatrix();
+
+    // btm box
+    glPushMatrix(); // for camera
+                    // temporarily, swap y and z for viewing purposes
+        glTranslated( CAR_LENGTH, CAR_HEIGHT * ( 7 / 16 ), 0 );
+        glScaled( CAR_LENGTH, CAR_HEIGHT * ( 3 / 8 ), CAR_WIDTH );
+        glColor3f( 0.5, 0.5, 0.3 );
+        glutSolidCube( 1 );
+    glPopMatrix();
+
+    glPushMatrix();
+        glutSolidTorus( CAR_HEIGHT / 12 , CAR_HEIGHT / 6 , 24, 24); // rad of pipe, rad of torus, divs of circ, torus sects
+    glPopMatrix();
+
+    // was working, torus too.
+    glColor3f( 0.5, 0.5, 0.3 );
+    glTranslated( -CAR_LENGTH / 6, CAR_HEIGHT * ( 13 / 16 ), 0 );
+    glScaled( CAR_LENGTH, CAR_HEIGHT, CAR_WIDTH );
+    glutSolidCube( 1 );
+    */
+    // ---------------------------------------- //
+    // ------------------car test-------------- //
+    // ---------------------------------------- //
 
     // Draw the cars.
     DrawAllCars();
@@ -270,7 +337,6 @@ void UpdateCars( void )
         if ( car[i].angularPos > 360.0 ) car[i].angularPos -= 360.0;
     }
     glutPostRedisplay();
-    glutTimerFunc((1000 / DESIRED_FPS), UpdateCars, 0);
 }
 
 
@@ -316,8 +382,8 @@ void MyTimer( int v )
         // WRITE YOUR CODE HERE.
         //****************************
         
-        // from assignment 1
-        glutTimerFunc((1000 / DESIRED_FPS), UpdateCars, 0);
+        UpdateCars(); // Separation of Concerns
+        glutTimerFunc( (1000 / DESIRED_FPS), MyTimer, 0 );
     }
 }
 
@@ -503,12 +569,12 @@ int main( int argc, char** argv )
     // atexit(WaitForEnterKeyBeforeExit); // atexit() is declared in stdlib.h
     // TODO: uncomment the above line on submission
 
-    srand(time(0));  // set random seed
+    // srand(time(0));  // set random seed
 
     glutInit( &argc, argv );
     glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
     glutInitWindowSize( winWidth, winHeight );
-    glutCreateWindow( "main" );
+    glutCreateWindow( "Ian Hong Car Assignment 2" );
 
     MyInit();
     InitCars();

@@ -1,0 +1,7 @@
+put nusnet ID e0543721 at the top instead of matric number
+
+You called MyTimer directly for the first call instead of using glutTimerFunc
+
+Your MyTimer function is not doing anything, instead everything is passed onto UpdateAllDiscPos(), which is not good structure (does not adhere to separation of concerns);
+
+- You should be calling UpdateAllDiscPos in MyTimer and having the glutTimerFunc be MyTimer as well 
