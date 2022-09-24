@@ -148,10 +148,50 @@ void DrawOneCar( float bodyColor[3] )
     // Draw the car body.
     //****************************
     
-    // top cube
-    glScaled( CAR_LENGTH, CAR_WIDTH, CAR_HEIGHT );
-    glutSolidCube(1); // size
+    // backup car
+    /*
+    glPushMatrix();
+        glScaled( CAR_LENGTH, CAR_WIDTH, CAR_HEIGHT );
+        glutSolidCube( 1 );
+    glPopMatrix();
+    */
+    
+    // bottom box
+    glPushMatrix();
+        glScaled( CAR_LENGTH, CAR_WIDTH, CAR_HEIGHT * ( 3.0 / 8.0 ) );
+        glTranslated( 0, 0, CAR_HEIGHT * ( 7.0 / 16.0 ) ); // why is this so high?
+        glutSolidCube( 1 );
+    glPopMatrix();
 
+    // top box
+    glPushMatrix();
+        glScaled( CAR_LENGTH * ( 2.0 / 3.0 ), CAR_WIDTH, CAR_HEIGHT * ( 3.0 / 8.0 ) );
+        glTranslated( 0, 0, CAR_HEIGHT * ( 8.0 / 16.0 ) ); // why is this 8??
+        // glTranslated( -CAR_LENGTH / 6.0, 0, CAR_HEIGHT * ( 13.0 / 16.0 ) );
+        glutSolidCube( 1 );
+    glPopMatrix();
+
+    /*
+    // btm box
+    glPushMatrix(); // for camera
+                    // temporarily, swap y and z for viewing purposes
+        glTranslated( CAR_LENGTH, CAR_HEIGHT * ( 7 / 16 ), 0 );
+        glScaled( CAR_LENGTH, CAR_HEIGHT * ( 3 / 8 ), CAR_WIDTH );
+        glColor3f( 0.5, 0.5, 0.3 );
+        glutSolidCube( 1 );
+    glPopMatrix();
+
+    glPushMatrix();
+        glutSolidTorus( CAR_HEIGHT / 12 , CAR_HEIGHT / 6 , 24, 24); // rad of pipe, rad of torus, divs of circ, torus sects
+    glPopMatrix();
+
+    // was working, torus too.
+    glColor3f( 0.5, 0.5, 0.3 );
+    glTranslated( -CAR_LENGTH / 6, CAR_HEIGHT * ( 13 / 16 ), 0 );
+    glScaled( CAR_LENGTH, CAR_HEIGHT, CAR_WIDTH );
+    glutSolidCube( 1 );
+    */
+    
     glColor3fv(tyreColor);
 
     //****************************
@@ -180,21 +220,17 @@ void DrawAllCars( void )
         // WRITE YOUR CODE HERE.
         //****************************
 
-        // cars not facing off planet's surface
         glPushMatrix();
-            double x, z; // for translation of car onto its pos on circle
-            x = PLANET_RADIUS * cos( degToRad( car[i].angularPos ) );
-            z = PLANET_RADIUS * sin( degToRad( car[i].angularPos ) );
-
-            // for this rotate, need angularpos also
+            // rotate the great circle about its v
             glRotatef( car[i].rotAngle, car[i].xzAxis[0], 0, car[i].xzAxis[1] );
-            glRotatef( car[i].angularPos, 0, 1, 0 ); // this one was anyhow but the cars seem to be spinning
-            glTranslated( -x, 0, -z );
+            // place car on its position on the great circle at that frame
+            glRotatef( car[i].angularPos, 0, 1, 0 );
+            // move car onto planet's surface
+            glTranslated( 0, 0, PLANET_RADIUS );
             DrawOneCar( car[i].bodyColor );
         glPopMatrix();
     }
 }
-
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -249,8 +285,7 @@ void MyDisplay( void )
     // far planes.
     //***********************************************************************
     gluPerspective( VERT_FOV, (double)winWidth / winHeight, 
-                    50, 600);
-                    // CLIP_PLANE_DIST, -CLIP_PLANE_DIST );
+                    eyeDistance - CLIP_PLANE_DIST, eyeDistance + CLIP_PLANE_DIST );
 
 
     glMatrixMode( GL_MODELVIEW );
@@ -262,12 +297,19 @@ void MyDisplay( void )
     // Modify the following line of code to set up the view transformation.
     // You may use the gluLookAt() function, but you can use other method.
     //***********************************************************************
+    /*
     double eyeX = eyeDistance * sin( degToRad( eyeLongitude ) );
     double eyeY = eyeDistance * sin( degToRad( eyeLatitude ) );
     double eyeZ = eyeDistance 
         * cos( degToRad( eyeLongitude ) )
         * cos( degToRad( eyeLatitude ) );
     gluLookAt( eyeX, eyeY, eyeZ, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 );
+    */
+
+    glRotatef( eyeLongitude, 0, 1, 0 );
+    glRotatef( eyeLatitude, 1, 0, 0 );
+    glTranslatef( 0, 0, -eyeDistance );
+    // maybe if +ve x and z value to positive, else do negative
 
     // Set world positions of the two lights.
     glLightfv( GL_LIGHT0, GL_POSITION, light0Position );
@@ -279,42 +321,6 @@ void MyDisplay( void )
     // Draw planet.
     glColor3fv( planetColor );
     glutSolidSphere( PLANET_RADIUS, 72, 36 );
-    // TODO: move to car section
-    // ---------------------------------------- //
-    // ------------------car test-------------- //
-    // ---------------------------------------- //
-    
-    /*
-    // top box
-    glPushMatrix(); // for camera
-                    // temporarily, swap y and z for viewing purposes
-        glTranslated( -CAR_LENGTH / 6, CAR_HEIGHT * ( 13 / 16 ), 0 );
-        glScaled( CAR_LENGTH * ( 2 / 3 ), CAR_HEIGHT * ( 3 / 8 ), CAR_WIDTH );
-        glutSolidCube( 1 );
-    glPopMatrix();
-
-    // btm box
-    glPushMatrix(); // for camera
-                    // temporarily, swap y and z for viewing purposes
-        glTranslated( CAR_LENGTH, CAR_HEIGHT * ( 7 / 16 ), 0 );
-        glScaled( CAR_LENGTH, CAR_HEIGHT * ( 3 / 8 ), CAR_WIDTH );
-        glColor3f( 0.5, 0.5, 0.3 );
-        glutSolidCube( 1 );
-    glPopMatrix();
-
-    glPushMatrix();
-        glutSolidTorus( CAR_HEIGHT / 12 , CAR_HEIGHT / 6 , 24, 24); // rad of pipe, rad of torus, divs of circ, torus sects
-    glPopMatrix();
-
-    // was working, torus too.
-    glColor3f( 0.5, 0.5, 0.3 );
-    glTranslated( -CAR_LENGTH / 6, CAR_HEIGHT * ( 13 / 16 ), 0 );
-    glScaled( CAR_LENGTH, CAR_HEIGHT, CAR_WIDTH );
-    glutSolidCube( 1 );
-    */
-    // ---------------------------------------- //
-    // ------------------car test-------------- //
-    // ---------------------------------------- //
 
     // Draw the cars.
     DrawAllCars();
