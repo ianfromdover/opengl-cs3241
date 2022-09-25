@@ -4,7 +4,9 @@
 // COMMENTS TO GRADER:
 //
 // Helper functions are defined right above the functions in which
-// they are first needed
+// they are first needed.
+//
+// The constants below remain unchanged.
 // ============================================================
 
 #include <stdlib.h>
@@ -13,8 +15,7 @@
 #include <time.h>
 
 #ifdef __APPLE__
-// #define GL_SILENCE_DEPRECATION
-// TODO: uncomment on submission
+#define GL_SILENCE_DEPRECATION
 #include <GLUT/glut.h>
 #else
 #include <GL/glut.h>
@@ -33,7 +34,6 @@
 #define CAR_LENGTH          32.0
 #define CAR_WIDTH           16.0
 #define CAR_HEIGHT          14.0
-
                                     // For each frame,
 #define CAR_MIN_ANGLE_INCR  0.5     // Min degrees to rotate car around planet
 #define CAR_MAX_ANGLE_INCR  3.0     // Max degrees to rotate car around planet
@@ -138,6 +138,12 @@ bool drawWireframe = false;     // Draw polygons in wireframe if true, otherwise
 // The car has size CAR_LENGTH x CAR_WIDTH x CAR_HEIGHT.
 /////////////////////////////////////////////////////////////////////////////
 
+void DrawOneTyre( void )
+{
+    glRotatef( 90, 1, 0, 0 );
+    glutSolidTorus( CAR_HEIGHT / 12.0 , CAR_HEIGHT / 6.0 , 24, 24);
+}
+
 void DrawOneCar( float bodyColor[3] )
 {
     glColor3fv(bodyColor);
@@ -148,57 +154,53 @@ void DrawOneCar( float bodyColor[3] )
     // Draw the car body.
     //****************************
     
-    // backup car
-    /*
+    // top box
     glPushMatrix();
-        glScaled( CAR_LENGTH, CAR_WIDTH, CAR_HEIGHT );
+        glTranslated( -CAR_LENGTH * (1.0 / 6.0), 0, CAR_HEIGHT * (13.0 / 16.0) );
+        glScaled( CAR_LENGTH * (2.0 / 3.0), CAR_WIDTH, CAR_HEIGHT * (3.0 / 8.0) );
         glutSolidCube( 1 );
     glPopMatrix();
-    */
     
     // bottom box
     glPushMatrix();
-        glScaled( CAR_LENGTH, CAR_WIDTH, CAR_HEIGHT * ( 3.0 / 8.0 ) );
-        glTranslated( 0, 0, CAR_HEIGHT * ( 7.0 / 16.0 ) ); // why is this so high?
+        glTranslated( 0, 0, CAR_HEIGHT * (7.0 / 16.0) );
+        glScaled( CAR_LENGTH, CAR_WIDTH, CAR_HEIGHT * (3.0 / 8.0) );
         glutSolidCube( 1 );
     glPopMatrix();
-
-    // top box
-    glPushMatrix();
-        glScaled( CAR_LENGTH * ( 2.0 / 3.0 ), CAR_WIDTH, CAR_HEIGHT * ( 3.0 / 8.0 ) );
-        glTranslated( 0, 0, CAR_HEIGHT * ( 8.0 / 16.0 ) ); // why is this 8??
-        // glTranslated( -CAR_LENGTH / 6.0, 0, CAR_HEIGHT * ( 13.0 / 16.0 ) );
-        glutSolidCube( 1 );
-    glPopMatrix();
-
-    /*
-    // btm box
-    glPushMatrix(); // for camera
-                    // temporarily, swap y and z for viewing purposes
-        glTranslated( CAR_LENGTH, CAR_HEIGHT * ( 7 / 16 ), 0 );
-        glScaled( CAR_LENGTH, CAR_HEIGHT * ( 3 / 8 ), CAR_WIDTH );
-        glColor3f( 0.5, 0.5, 0.3 );
-        glutSolidCube( 1 );
-    glPopMatrix();
-
-    glPushMatrix();
-        glutSolidTorus( CAR_HEIGHT / 12 , CAR_HEIGHT / 6 , 24, 24); // rad of pipe, rad of torus, divs of circ, torus sects
-    glPopMatrix();
-
-    // was working, torus too.
-    glColor3f( 0.5, 0.5, 0.3 );
-    glTranslated( -CAR_LENGTH / 6, CAR_HEIGHT * ( 13 / 16 ), 0 );
-    glScaled( CAR_LENGTH, CAR_HEIGHT, CAR_WIDTH );
-    glutSolidCube( 1 );
-    */
-    
-    glColor3fv(tyreColor);
 
     //****************************
     // WRITE YOUR CODE HERE.
     //
     // Draw the four tyres.
     //****************************
+
+    // for moving tyres forward or behind
+    double tyreCenterX = (CAR_LENGTH / 2.0) - (0.25 * CAR_HEIGHT); 
+    // for moving tyres left or right
+    double tyreCenterY = (CAR_WIDTH / 2.0) - ((1.0 / 12.0) * CAR_HEIGHT);
+    double tyreHeightOffPlanet = CAR_HEIGHT / 6.0;
+
+    // draw tyres
+    glColor3fv(tyreColor);
+    glPushMatrix();
+        glTranslated( tyreCenterX, tyreCenterY, tyreHeightOffPlanet );
+        DrawOneTyre();
+    glPopMatrix();
+
+    glPushMatrix();
+        glTranslated( -tyreCenterX, tyreCenterY, tyreHeightOffPlanet );
+        DrawOneTyre();
+    glPopMatrix();
+
+    glPushMatrix();
+        glTranslated( tyreCenterX, -tyreCenterY, tyreHeightOffPlanet );
+        DrawOneTyre();
+    glPopMatrix();
+
+    glPushMatrix();
+        glTranslated( -tyreCenterX, -tyreCenterY, tyreHeightOffPlanet );
+        DrawOneTyre();
+    glPopMatrix();
 }
 
 
@@ -206,11 +208,6 @@ void DrawOneCar( float bodyColor[3] )
 /////////////////////////////////////////////////////////////////////////////
 // Draw all the cars. Each is put correctly on its great circle.
 /////////////////////////////////////////////////////////////////////////////
-
-double degToRad( double theta )
-{
-    return theta * ( PI / 180 );
-}
 
 void DrawAllCars( void )
 {
@@ -225,7 +222,7 @@ void DrawAllCars( void )
             glRotatef( car[i].rotAngle, car[i].xzAxis[0], 0, car[i].xzAxis[1] );
             // place car on its position on the great circle at that frame
             glRotatef( car[i].angularPos, 0, 1, 0 );
-            // move car onto planet's surface
+            // move car from planet's center onto planet's surface
             glTranslated( 0, 0, PLANET_RADIUS );
             DrawOneCar( car[i].bodyColor );
         glPopMatrix();
@@ -284,9 +281,10 @@ void MyDisplay( void )
     // the predefined constant CLIP_PLANE_DIST to position your near and
     // far planes.
     //***********************************************************************
-    gluPerspective( VERT_FOV, (double)winWidth / winHeight, 
-                    eyeDistance - CLIP_PLANE_DIST, eyeDistance + CLIP_PLANE_DIST );
 
+    gluPerspective( VERT_FOV, (double)winWidth / winHeight, 
+                    eyeDistance - CLIP_PLANE_DIST,
+                    eyeDistance + CLIP_PLANE_DIST );
 
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
@@ -297,19 +295,11 @@ void MyDisplay( void )
     // Modify the following line of code to set up the view transformation.
     // You may use the gluLookAt() function, but you can use other method.
     //***********************************************************************
-    /*
-    double eyeX = eyeDistance * sin( degToRad( eyeLongitude ) );
-    double eyeY = eyeDistance * sin( degToRad( eyeLatitude ) );
-    double eyeZ = eyeDistance 
-        * cos( degToRad( eyeLongitude ) )
-        * cos( degToRad( eyeLatitude ) );
-    gluLookAt( eyeX, eyeY, eyeZ, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 );
-    */
 
-    glRotatef( eyeLongitude, 0, 1, 0 );
-    glRotatef( eyeLatitude, 1, 0, 0 );
+    // Rotate world then move the camera back
     glTranslatef( 0, 0, -eyeDistance );
-    // maybe if +ve x and z value to positive, else do negative
+    glRotatef( eyeLatitude, 1, 0, 0 );
+    glRotatef( -eyeLongitude, 0, 1, 0 );
 
     // Set world positions of the two lights.
     glLightfv( GL_LIGHT0, GL_POSITION, light0Position );
@@ -389,7 +379,7 @@ void MyTimer( int v )
         //****************************
         
         UpdateCars(); // Separation of Concerns
-        glutTimerFunc( (1000 / DESIRED_FPS), MyTimer, 0 );
+        glutTimerFunc( ( 1000 / DESIRED_FPS ), MyTimer, 0 );
     }
 }
 
@@ -572,10 +562,9 @@ static void WaitForEnterKeyBeforeExit(void)
 
 int main( int argc, char** argv )
 {
-    // atexit(WaitForEnterKeyBeforeExit); // atexit() is declared in stdlib.h
-    // TODO: uncomment the above line on submission
+    atexit(WaitForEnterKeyBeforeExit); // atexit() is declared in stdlib.h
 
-    // srand(time(0));  // set random seed
+    srand(time(0));  // set random seed
 
     glutInit( &argc, argv );
     glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
