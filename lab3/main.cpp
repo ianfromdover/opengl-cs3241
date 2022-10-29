@@ -1,8 +1,12 @@
 //============================================================
-// STUDENT NAME:
-// NUS User ID.:
+// STUDENT NAME: Hong Yi En, Ian
+// NUS User ID.: E0543721
 // COMMENTS TO GRADER:
 //
+// Helper functions are defined right above the functions in which
+// they are first needed.
+//
+// The constants below remain unchanged.
 // ============================================================
 
 #include <stdlib.h>
@@ -60,6 +64,10 @@
 #define EYE_LATITUDE_INCR   2.0     // Degree increment when changing eye's latitude.
 #define EYE_LONGITUDE_INCR  2.0     // Degree increment when changing eye's longitude.
 
+#define CUSTM_OBJ_X         0.2     // Prof Cube x coordinate.
+#define CUSTM_OBJ_Y         -0.5     // Prof Cube y coordinate.
+#define CUSTM_OBJ_LEN       0.3     // Length of one side of the Prof Cube
+
 
 // Light 0.
 const GLfloat light0Ambient[] = { 0.1, 0.1, 0.1, 1.0 };
@@ -80,6 +88,7 @@ const char ceilingTexFile[] = "images/ceiling.jpg";
 const char brickTexFile[] = "images/brick.jpg";
 const char checkerTexFile[] = "images/checker.png";
 const char spotsTexFile[] = "images/spots.png";
+const char profTexFile[] = "images/prof.png";
 
 
 
@@ -113,6 +122,7 @@ GLuint ceilingTexObj;
 GLuint brickTexObj;
 GLuint checkerTexObj;
 GLuint spotsTexObj;
+GLuint profTexObj;
 
 // Others.
 bool drawAxes = true;           // Draw world coordinate frame axes iff true.
@@ -126,6 +136,7 @@ void DrawRoom( void );
 void DrawTeapot( void );
 void DrawSphere( void );
 void DrawTable( void );
+void DrawProfCube( void );
 
 
 
@@ -155,8 +166,46 @@ void MakeReflectionImage( void )
     //****************************
     // WRITE YOUR CODE HERE.
     //****************************
+    
+    // STEP 1: Clears the correct buffers
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
+    // STEP 2: Sets up the correct view volume for the imaginary viewpoint
+    glMatrixMode( GL_PROJECTION );
+    glLoadIdentity();
 
+    // STEP 3: Sets up the imaginary viewpoint
+    // vtl means virtual
+    double vtlEyePos[] = { eyePos[0], eyePos[1], 2 * TABLETOP_Z - eyePos[2] };
+    double nearPlaneDist = TABLETOP_Z - vtlEyePos[2];
+
+    // make viewing volume move with camera
+    glFrustum( TABLETOP_Y1 - vtlEyePos[1], TABLETOP_Y2 - vtlEyePos[1],
+               TABLETOP_X1 - vtlEyePos[0], TABLETOP_X2 - vtlEyePos[0],
+               nearPlaneDist, nearPlaneDist + SCENE_RADIUS );
+
+    // look at the real camera, because the clipping plane is perp to look dir
+    gluLookAt( vtlEyePos[0], vtlEyePos[1], vtlEyePos[2],
+               eyePos[0], eyePos[1], eyePos[2], 
+               1, 0, 0 );
+
+    // STEP 4: Sets up the light source positions in the world space.
+    glMatrixMode( GL_MODELVIEW );
+    glLoadIdentity();
+
+    glLightfv( GL_LIGHT0, GL_POSITION, light0Position );
+    glLightfv( GL_LIGHT1, GL_POSITION, light1Position );
+
+    // STEP 5: Draws the scene (without drawing the table)
+    DrawRoom();
+    DrawTeapot();
+    DrawSphere();
+    DrawProfCube();
+
+    // STEP 6: Read the correct color buffer into the correct texture object.
+    glReadBuffer( GL_BACK );
+    glBindTexture( GL_TEXTURE_2D, reflectionTexObj );
+    glCopyTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, winWidth, winHeight, 0 );
 }
 
 
@@ -203,6 +252,7 @@ void MyDisplay( void )
     DrawTeapot();
     DrawSphere();
     DrawTable();
+    DrawProfCube();
 
     glutSwapBuffers();
 }
@@ -512,11 +562,38 @@ void SetUpTextureMaps( void )
 
     DeallocateImageData( &imageData );
 
+    //***********************************************************
+    //*********** PDF TASK #2 WRITE YOUR CODE BELOW *************
+    //***********************************************************
+    // This texture object is for the prof texture map.
+    // all other lower-resolution mipmap levels are automatically generated.
+    //********************************************************
+
+    glGenTextures( 1, &profTexObj );
+    glBindTexture( GL_TEXTURE_2D, profTexObj );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+
+    if ( ReadImageFile( profTexFile, &imageData,
+                        &imageWidth, &imageHeight, &numComponents ) == 0 ) exit( 1 );
+    if ( numComponents != 3 )
+    {
+        fprintf( stderr, "Error: Texture image is not in RGB format.\n" );
+        exit( 1 );
+    }
+
+    gluBuild2DMipmaps( GL_TEXTURE_2D, GL_RGB, imageWidth, imageHeight,
+                       GL_RGB, GL_UNSIGNED_BYTE, imageData );
+
+    DeallocateImageData( &imageData );
+
 
 // This texture object is for storing the reflection image read from the color buffer.
 
     //********************************************************
-    //*********** TASK #1: WRITE YOUR CODE BELOW *************
+    //*********** TASK #2: WRITE YOUR CODE BELOW *************
     //********************************************************
     // Sets up the texture object reflectionTexObj for storing the reflection
     // texture map that is to be mapped to the tabletop.
@@ -529,10 +606,13 @@ void SetUpTextureMaps( void )
     // WRITE YOUR CODE HERE.
     //****************************
 
-
+    glGenTextures( 1, &reflectionTexObj );
+    glBindTexture( GL_TEXTURE_2D, reflectionTexObj );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE );
+    DeallocateImageData( &imageData );
 }
-
-
 
 
 static void WaitForEnterKeyBeforeExit(void)
@@ -551,7 +631,8 @@ static void WaitForEnterKeyBeforeExit(void)
 
 int main( int argc, char** argv )
 {
-    atexit(WaitForEnterKeyBeforeExit); // atexit() is declared in stdlib.h
+    // atexit(WaitForEnterKeyBeforeExit); // atexit() is declared in stdlib.h
+    // TODO: enable on submit
 
 // Initialize GLUT and create window.
     glutInit( &argc, argv );
@@ -567,7 +648,7 @@ int main( int argc, char** argv )
 
 
 // Initialize GLEW.
-// The followings make sure OpenGL 1.4 is supported and set up the extensions.
+// The following makes sure that OpenGL 1.4 is supported and set up the extensions.
 // macOS does not require GLEW, so an extra check is performed.
 
 #ifndef __APPLE__
@@ -872,8 +953,6 @@ void DrawSphere( void )
 }
 
 
-
-
 /////////////////////////////////////////////////////////////////////////////
 // Draw the table.
 /////////////////////////////////////////////////////////////////////////////
@@ -892,7 +971,7 @@ void DrawTable( void )
     glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, matShininess1 );
 
     //********************************************************
-    //*********** TASK #1: WRITE YOUR CODE BELOW *************
+    //*********** TASK #3: WRITE YOUR CODE BELOW *************
     //********************************************************
     // Must use the SubdivideAndDrawQuad() function to draw the tabletop rectangle.
     // So that the tabletop has small enough quads to show the sharp specular highlight.
@@ -907,9 +986,15 @@ void DrawTable( void )
     //****************************
     // WRITE YOUR CODE HERE.
     //****************************
+    
+    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE ); // blends table colour
+    glBindTexture( GL_TEXTURE_2D, reflectionTexObj );
 
-
-
+    glNormal3f( 0.0, 0.0, 1.0 ); // Normal vector.
+    SubdivideAndDrawQuad( 24, 24, 0.0, 0.0, TABLETOP_X1, TABLETOP_Y1, TABLETOP_Z,
+                                  0.0, 1.0, TABLETOP_X2, TABLETOP_Y1, TABLETOP_Z,
+                                  1.0, 1.0, TABLETOP_X2, TABLETOP_Y2, TABLETOP_Z,
+                                  1.0, 0.0, TABLETOP_X1, TABLETOP_Y2, TABLETOP_Z);
 
 // Sides.
 
@@ -996,3 +1081,48 @@ void DrawTable( void )
     glutSolidCube( 1.0 );
     glPopMatrix();
 }
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Draw a texture-mapped cube blessed by Prof's visage.
+/////////////////////////////////////////////////////////////////////////////
+
+void DrawProfCube( void )
+{
+    GLfloat matAmbient[] = { 0.8, 0.8, 0.8, 1.0 };
+    GLfloat matDiffuse[] = { 0.8, 0.8, 0.8, 1.0 };
+    GLfloat matSpecular[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat matShininess[] = { 128.0 };
+    glMaterialfv( GL_FRONT_AND_BACK, GL_AMBIENT, matAmbient );
+    glMaterialfv( GL_FRONT_AND_BACK, GL_DIFFUSE, matDiffuse );
+    glMaterialfv( GL_FRONT_AND_BACK, GL_SPECULAR, matSpecular );
+    glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, matShininess );
+
+    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
+    glBindTexture( GL_TEXTURE_2D, profTexObj );
+
+    glDisable( GL_CULL_FACE );  // Disable back-face culling.
+
+    glPushMatrix();
+        // move cube into its position in world space
+        glTranslated( CUSTM_OBJ_X, CUSTM_OBJ_Y, CUSTM_OBJ_LEN + TABLETOP_Z );
+        double halfLen = CUSTM_OBJ_LEN / 2.0;
+
+        // create cube
+        glBegin( GL_QUADS );
+            glTexCoord2f( 0.0, 0.0 ); glVertex3f( halfLen, -halfLen, -halfLen ); 
+            glTexCoord2f( 0.0, 1.0 ); glVertex3f( halfLen, halfLen, -halfLen ); 
+            glTexCoord2f( 1.0, 1.0 ); glVertex3f( halfLen, halfLen, halfLen ); 
+            glTexCoord2f( 1.0, 0.0 ); glVertex3f( halfLen, -halfLen, halfLen ); 
+
+            glTexCoord2f(0.0, 0.0); glVertex3f(1.0, -1.0, 0.0); 
+            glTexCoord2f(0.0, 1.0); glVertex3f(1.0, 1.0, 0.0); 
+            glTexCoord2f(1.0, 1.0); glVertex3f(2.4, 1.0, -1.4); 
+            glTexCoord2f(1.0, 0.0); glVertex3f(2.4, -1.0, -1.4);
+        glEnd();
+    glPopMatrix();
+
+    glEnable( GL_CULL_FACE );   // Enable back-face culling.
+}
+
+
