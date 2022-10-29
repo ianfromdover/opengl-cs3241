@@ -3,10 +3,8 @@
 // NUS User ID.: E0543721
 // COMMENTS TO GRADER:
 //
-// Helper functions are defined right above the functions in which
-// they are first needed.
-//
-// The constants below remain unchanged.
+// New constants are defined at the end of the list to 
+// change the custom object
 // ============================================================
 
 #include <stdlib.h>
@@ -64,9 +62,10 @@
 #define EYE_LATITUDE_INCR   2.0     // Degree increment when changing eye's latitude.
 #define EYE_LONGITUDE_INCR  2.0     // Degree increment when changing eye's longitude.
 
-#define CUSTM_OBJ_X         0.2     // Prof Cube x coordinate.
-#define CUSTM_OBJ_Y         -0.5     // Prof Cube y coordinate.
-#define CUSTM_OBJ_LEN       0.3     // Length of one side of the Prof Cube
+#define CUSTM_OBJ_X         0.5     // Prof Photo x coordinate.
+#define CUSTM_OBJ_Y         -0.8    // Prof Photo y coordinate.
+#define CUSTM_PHOTO_LEN     0.5     // Length of one side of the Prof Photo
+#define CUSTM_BORDER_WIDTH  0.05    // Border thickness of Frame
 
 
 // Light 0.
@@ -83,7 +82,7 @@ const GLfloat light1Position[] = { -2.0, 10.0, -2.0, 1.0 };
 
 
 // Texture image filenames.
-const char woodTexFile[] = "images/wood.jpg";
+const char woodTexFile[] = "images/wood.png";
 const char ceilingTexFile[] = "images/ceiling.jpg";
 const char brickTexFile[] = "images/brick.jpg";
 const char checkerTexFile[] = "images/checker.png";
@@ -136,7 +135,7 @@ void DrawRoom( void );
 void DrawTeapot( void );
 void DrawSphere( void );
 void DrawTable( void );
-void DrawProfCube( void );
+void DrawProfAward( double, double, double, double, double, double, double, double, double );
 
 
 
@@ -200,7 +199,12 @@ void MakeReflectionImage( void )
     DrawRoom();
     DrawTeapot();
     DrawSphere();
-    DrawProfCube();
+    DrawProfAward( CUSTM_OBJ_X, CUSTM_OBJ_Y, 
+                   CUSTM_PHOTO_LEN / 2.0 + CUSTM_BORDER_WIDTH + TABLETOP_Z, 
+                   0, 0, 30, 1, 1, 1 );
+    DrawProfAward( -ROOM_WIDTH / 2.0, 0, TABLETOP_Z + CUSTM_PHOTO_LEN,
+                   0, 0, 0, 
+                   3, 3, 3 );
 
     // STEP 6: Read the correct color buffer into the correct texture object.
     glReadBuffer( GL_BACK );
@@ -252,7 +256,12 @@ void MyDisplay( void )
     DrawTeapot();
     DrawSphere();
     DrawTable();
-    DrawProfCube();
+    DrawProfAward( CUSTM_OBJ_X, CUSTM_OBJ_Y, 
+                   CUSTM_PHOTO_LEN / 2.0 + CUSTM_BORDER_WIDTH + TABLETOP_Z, 
+                   0, 0, 30, 1, 1, 1 );
+    DrawProfAward( -ROOM_WIDTH / 2.0, 0, ROOM_HEIGHT / 2.0,
+                   0, 0, 0, 
+                   3, 3, 3 );
 
     glutSwapBuffers();
 }
@@ -1087,7 +1096,9 @@ void DrawTable( void )
 // Draw a texture-mapped cube blessed by Prof's visage.
 /////////////////////////////////////////////////////////////////////////////
 
-void DrawProfCube( void )
+void DrawProfAward( double tx, double ty, double tz,  // translate
+                    double rx, double ry, double rz,  // rotate
+                    double sx, double sy, double sz ) // scale
 {
     GLfloat matAmbient[] = { 0.8, 0.8, 0.8, 1.0 };
     GLfloat matDiffuse[] = { 0.8, 0.8, 0.8, 1.0 };
@@ -1099,26 +1110,72 @@ void DrawProfCube( void )
     glMaterialfv( GL_FRONT_AND_BACK, GL_SHININESS, matShininess );
 
     glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE );
-    glBindTexture( GL_TEXTURE_2D, profTexObj );
+    // glBindTexture( GL_TEXTURE_2D, profTexObj );
 
     glDisable( GL_CULL_FACE );  // Disable back-face culling.
 
+    double halfLen = CUSTM_PHOTO_LEN / 2.0;
+    double hlBw = halfLen + CUSTM_BORDER_WIDTH;
+    double frameThkns = 0.03; // thickness
+    double photoOffset = 0.001;
+
+    // create wood frame
+    glBindTexture( GL_TEXTURE_2D, woodTexObj );
+
     glPushMatrix();
-        // move cube into its position in world space
-        glTranslated( CUSTM_OBJ_X, CUSTM_OBJ_Y, CUSTM_OBJ_LEN + TABLETOP_Z );
-        double halfLen = CUSTM_OBJ_LEN / 2.0;
+        glTranslated( tx, ty, tz );
+        glRotatef( rx, 1, 0, 0 );
+        glRotatef( ry, 0, 1, 0 );
+        glRotatef( rz, 0, 0, 1 );
+        glScaled( sx, sy, sz );
 
-        // create cube
         glBegin( GL_QUADS );
-            glTexCoord2f( 0.0, 0.0 ); glVertex3f( halfLen, -halfLen, -halfLen ); 
-            glTexCoord2f( 0.0, 1.0 ); glVertex3f( halfLen, halfLen, -halfLen ); 
-            glTexCoord2f( 1.0, 1.0 ); glVertex3f( halfLen, halfLen, halfLen ); 
-            glTexCoord2f( 1.0, 0.0 ); glVertex3f( halfLen, -halfLen, halfLen ); 
+            // front face
+            glTexCoord2f( 0.0, 1.0 ); glVertex3f( frameThkns, -hlBw, hlBw );
+            glTexCoord2f( 1.0, 1.0 ); glVertex3f( frameThkns, hlBw, hlBw );
+            glTexCoord2f( 1.0, 0.0 ); glVertex3f( frameThkns, hlBw, -hlBw );
+            glTexCoord2f( 0.0, 0.0 ); glVertex3f( frameThkns, -hlBw, -hlBw );
 
-            glTexCoord2f(0.0, 0.0); glVertex3f(1.0, -1.0, 0.0); 
-            glTexCoord2f(0.0, 1.0); glVertex3f(1.0, 1.0, 0.0); 
-            glTexCoord2f(1.0, 1.0); glVertex3f(2.4, 1.0, -1.4); 
-            glTexCoord2f(1.0, 0.0); glVertex3f(2.4, -1.0, -1.4);
+            // back face
+            glTexCoord2f( 0.0, 1.0 ); glVertex3f( 0, -hlBw, hlBw );
+            glTexCoord2f( 1.0, 1.0 ); glVertex3f( 0, hlBw, hlBw );
+            glTexCoord2f( 1.0, 0.0 ); glVertex3f( 0, hlBw, -hlBw );
+            glTexCoord2f( 0.0, 0.0 ); glVertex3f( 0, -hlBw, -hlBw );
+
+            // left face
+            glTexCoord2f( 0.0, 1.0 ); glVertex3f( 0, -hlBw, -hlBw );
+            glTexCoord2f( 1.0, 1.0 ); glVertex3f( frameThkns, -hlBw, -hlBw );
+            glTexCoord2f( 1.0, 0.0 ); glVertex3f( frameThkns, -hlBw, hlBw );
+            glTexCoord2f( 0.0, 0.0 ); glVertex3f( 0, -hlBw, hlBw );
+
+            // right face
+            glTexCoord2f( 0.0, 1.0 ); glVertex3f( 0, hlBw, -hlBw );
+            glTexCoord2f( 1.0, 1.0 ); glVertex3f( frameThkns, hlBw, -hlBw );
+            glTexCoord2f( 1.0, 0.0 ); glVertex3f( frameThkns, hlBw, hlBw );
+            glTexCoord2f( 0.0, 0.0 ); glVertex3f( 0, hlBw, hlBw );
+
+            // top face
+            glTexCoord2f( 0.0, 1.0 ); glVertex3f( frameThkns, -hlBw, hlBw );
+            glTexCoord2f( 1.0, 1.0 ); glVertex3f( frameThkns, hlBw, hlBw );
+            glTexCoord2f( 1.0, 0.0 ); glVertex3f( 0, hlBw, hlBw );
+            glTexCoord2f( 0.0, 0.0 ); glVertex3f( 0, -hlBw, hlBw );
+
+            // btm face
+            glTexCoord2f( 0.0, 1.0 ); glVertex3f( frameThkns, -hlBw, -hlBw );
+            glTexCoord2f( 1.0, 1.0 ); glVertex3f( frameThkns, hlBw, -hlBw );
+            glTexCoord2f( 1.0, 0.0 ); glVertex3f( 0, hlBw, -hlBw );
+            glTexCoord2f( 0.0, 0.0 ); glVertex3f( 0, -hlBw, -hlBw );
+        glEnd();
+
+        // create prof's photo
+        glTranslated( photoOffset, 0, 0 );
+        glBindTexture( GL_TEXTURE_2D, profTexObj );
+
+        glBegin( GL_QUADS );
+            glTexCoord2f( 0.0, 1.0 ); glVertex3f( frameThkns, -halfLen, halfLen ); 
+            glTexCoord2f( 1.0, 1.0 ); glVertex3f( frameThkns, halfLen, halfLen ); 
+            glTexCoord2f( 1.0, 0.0 ); glVertex3f( frameThkns, halfLen, -halfLen ); 
+            glTexCoord2f( 0.0, 0.0 ); glVertex3f( frameThkns, -halfLen, -halfLen ); 
         glEnd();
     glPopMatrix();
 
