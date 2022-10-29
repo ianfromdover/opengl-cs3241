@@ -5,6 +5,9 @@
 //
 // New constants are defined at the end of the list to 
 // change the custom object
+//
+// New texture added to the end of the texture list
+// New object defined at the bottom of the file
 // ============================================================
 
 #include <stdlib.h>
@@ -640,8 +643,7 @@ static void WaitForEnterKeyBeforeExit(void)
 
 int main( int argc, char** argv )
 {
-    // atexit(WaitForEnterKeyBeforeExit); // atexit() is declared in stdlib.h
-    // TODO: enable on submit
+    atexit(WaitForEnterKeyBeforeExit); // atexit() is declared in stdlib.h
 
 // Initialize GLUT and create window.
     glutInit( &argc, argv );
@@ -1093,7 +1095,7 @@ void DrawTable( void )
 
 
 /////////////////////////////////////////////////////////////////////////////
-// Draw a texture-mapped cube blessed by Prof's visage.
+// Draw a texture-mapped award frame blessed by Prof's visage.
 /////////////////////////////////////////////////////////////////////////////
 
 void DrawProfAward( double tx, double ty, double tz,  // translate
