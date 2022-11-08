@@ -43,9 +43,8 @@ static constexpr std::string_view outImageFile2 = "out2.png";
 ///////////////////////////////////////////////////////////////////////////
 
 void RenderImage( const std::string &imageFilename, const Scene &scene, 
-                  int reflectLevels, bool hasBooger)
+                  int reflectLevels, bool hasShadow )
 {
-    int hasShadow = hasBooger;
     int imgWidth = scene.camera.getImageWidth();
     int imgHeight = scene.camera.getImageHeight();
 
