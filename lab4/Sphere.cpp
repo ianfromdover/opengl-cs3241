@@ -3,6 +3,8 @@
 // NUS User ID.: E0543721
 // COMMENTS TO GRADER:
 //
+// The logic has been placed in helper function findT that
+// returns a double for both functions.
 // ============================================================
 
 #include <cmath>
@@ -10,17 +12,8 @@
 
 using namespace std;
 
-
-
-bool Sphere::hit( const Ray &r, double tmin, double tmax, SurfaceHitRecord &rec ) const 
+double findT( const Ray &r, double tmin, double tmax, double radius, Vector3d rTranslatedOrig )
 {
-    //***********************************************
-    //*********** WRITE YOUR CODE HERE **************
-    //***********************************************
-    
-    // TODO: use center.xyz!!!
-    Vector3d rTranslatedOrig = r.origin() - center;
-    
     // to find the intersection, sub the ray eqn P(t) into sphere eqn
     // P • P - r^2 = 0
     // expanding the equation with P(t) = Ro + t * Rd, we get quad eqn
@@ -36,6 +29,7 @@ bool Sphere::hit( const Ray &r, double tmin, double tmax, SurfaceHitRecord &rec 
     {
         // if there are 2 intersections
         // choose the closer intersection (smaller t value)
+        // since we assume that all objects are opaque
         double tA = ( -b + sqrt(discriminant) ) / ( 2 * a );
         double tB = ( -b - sqrt(discriminant) ) / ( 2 * a );
         
@@ -43,16 +37,27 @@ bool Sphere::hit( const Ray &r, double tmin, double tmax, SurfaceHitRecord &rec 
         // if there is only 1 intersection, both values will be equal
         
         if ( t < tmin || t > tmax ) return false;
-        
-        // populate hit record
-        rec.t = t;
-        rec.p = r.pointAtParam(t);
-        rec.material = material;
-        
-        Vector3d pt = rTranslatedOrig + t * r.direction();
-        rec.normal = pt / pt.unitVector();
-        return true;
+        return t;
     }
+}
+
+bool Sphere::hit( const Ray &r, double tmin, double tmax, SurfaceHitRecord &rec ) const 
+{
+    //***********************************************
+    //*********** WRITE YOUR CODE HERE **************
+    //***********************************************
+    
+    Vector3d rTranslatedOrig = r.origin() - center;
+    double t = findT(r, tmin, tmax, radius, rTranslatedOrig);
+    if ( t == false ) return false; // assumes that t is never 0
+        
+    Vector3d pt = rTranslatedOrig + t * r.direction();
+    // populate hit record
+    rec.t = t;
+    rec.p = r.pointAtParam(t);
+    rec.normal = pt / pt.unitVector();
+    rec.material = material;
+    return true;
 }
 
 
@@ -62,7 +67,7 @@ bool Sphere::shadowHit( const Ray &r, double tmin, double tmax ) const
     //***********************************************
     //*********** WRITE YOUR CODE HERE **************
     //***********************************************
-
-
-    return false;  // YOU CAN REMOVE/CHANGE THIS IF NEEDED.
+    Vector3d rTranslatedOrig = r.origin() - center;
+    double t = findT(r, tmin, tmax, radius, rTranslatedOrig);
+    return t != false; // assumes that t is never 0
 }

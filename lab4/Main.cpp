@@ -27,7 +27,7 @@ static constexpr int imageWidth1 = 640;
 static constexpr int imageHeight1 = 480;
 static constexpr int reflectLevels1 = 2;  // 0 -- object does not reflect scene.
 static constexpr int hasShadow1 = true;
-static constexpr std::string_view outImageFile1 = "out1b.png";
+static constexpr std::string_view outImageFile1 = "out1c.png";
 
 // Constants for Scene 2.
 static constexpr int imageWidth2 = 640;

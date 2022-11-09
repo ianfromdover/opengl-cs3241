@@ -103,12 +103,6 @@ Color Raytrace::TraceRay( const Ray &ray, const Scene &scene,
 
     Color result( 0.0f, 0.0f, 0.0f );   // The result will be accumulated here.
 
-
-    //**********************************
-    result = nearestHitRec.material.k_d;  // REMOVE THIS LINE AFTER YOU HAVE FINISHED CODE BELOW.
-    //**********************************
-
-
 // Add to result the phong lighting contributed by each point light source.
 // Compute for shadow if hasShadow is true.
 
@@ -116,6 +110,16 @@ Color Raytrace::TraceRay( const Ray &ray, const Scene &scene,
     //*********** WRITE YOUR CODE HERE **************
     //***********************************************
 
+    
+    
+    result = nearestHitRec.material.k_d;
+    for (PointLightSource lightSrc : scene.ptLights )
+    {
+        Vector3d L = ( lightSrc.position - nearestHitRec.p ).unitVector();
+        
+        result += computePhongLighting(L, N, V, nearestHitRec.material, lightSrc);
+    }
+    
 
 
 // Add to result the global ambient lighting.
