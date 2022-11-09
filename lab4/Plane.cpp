@@ -10,8 +10,6 @@ bool Plane::hit( const Ray &r, double tmin, double tmax, SurfaceHitRecord &rec )
     Vector3d N( A, B, C );
     double NRd = dot( N, r.direction() );
     double NRo = dot( N, r.origin() );
-    // N•P + D = 0
-    // P = -D invDot N
     double t = (-D - NRo) / NRd;
     if ( t < tmin || t > tmax ) return false;
 

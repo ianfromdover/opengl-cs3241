@@ -18,24 +18,41 @@ bool Sphere::hit( const Ray &r, double tmin, double tmax, SurfaceHitRecord &rec 
     //*********** WRITE YOUR CODE HERE **************
     //***********************************************
     
-    // to find the intersection, sub the ray eqn into sphere eqn
-    // P•P - r^2 = 0
-    // use center.xyz and radius
-    int t = 0;
-    // if ( t < tmin || t > tmax ) return false;
-    // if ( t >= tmin && t <= tmax )
-    /*
+    // TODO: use center.xyz!!!
+    Vector3d rTranslatedOrig = r.origin() - center;
+    
+    // to find the intersection, sub the ray eqn P(t) into sphere eqn
+    // P • P - r^2 = 0
+    // expanding the equation with P(t) = Ro + t * Rd, we get quad eqn
+    // at^2 + bt + c = 0, where
+    double a = dot( r.direction(), r.direction() );
+    double b = dot( r.direction(), rTranslatedOrig ) * 2;
+    double c = dot( rTranslatedOrig, rTranslatedOrig ) - ( radius * radius );
+    
+    double discriminant = ( b * b ) - 4 * ( a * c );
+
+    if ( discriminant < 0 ) return false; // ray does not hit the sphere
+    else // discrmt == 0 || discrmt > 0, 1 or 2 intersections with sphere
     {
-        // We have a hit -- populate hit record.
+        // if there are 2 intersections
+        // choose the closer intersection (smaller t value)
+        double tA = ( -b + sqrt(discriminant) ) / ( 2 * a );
+        double tB = ( -b - sqrt(discriminant) ) / ( 2 * a );
+        
+        double t = ( tA < tB ) ? tA : tB;
+        // if there is only 1 intersection, both values will be equal
+        
+        if ( t < tmin || t > tmax ) return false;
+        
+        // populate hit record
         rec.t = t;
         rec.p = r.pointAtParam(t);
-        
-        rec.normal = 0;
         rec.material = material;
+        
+        Vector3d pt = rTranslatedOrig + t * r.direction();
+        rec.normal = pt / pt.unitVector();
         return true;
     }
-     */
-    return false;  // YOU CAN REMOVE/CHANGE THIS IF NEEDED.
 }
 
 
