@@ -33,7 +33,7 @@ static constexpr int imageWidth2 = 640;
 static constexpr int imageHeight2 = 480;
 static constexpr int reflectLevels2 = 2;  // 0 -- object does not reflect scene.
 static constexpr int hasShadow2 = true;
-static constexpr std::string_view outImageFile2 = "img_scene2b.png";
+static constexpr std::string_view outImageFile2 = "3 buildMan";
 
 
 
@@ -297,11 +297,23 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     //***********************************************
     //*********** WRITE YOUR CODE HERE **************
     //***********************************************
-    scene.backgroundColor = Color( 0.2f, 0.3f, 0.5f );
 
+// Define colors.
     // light blue cool col temp sun
+    Color sun = Color( 0.827f, 0.867f, 0.988f );
+    Color waterBlue = Color( 0.435f, 0.670f, 0.941f );
+    // Color waterBlue = Color( 0.435f, 0.739f, 0.941f ); // fadedFilterBlue
+    Color white = Color( 1.0f, 1.0f, 1.0f );
+    Color black = Color( 0.0f, 0.0f, 0.0f );
+    Color pink = Color( 0.973f, 0.831f, 0.871f );
+    Color blue = Color( 0.0f, 0.0f, 1.0f );
+    Color midgrey = white / 2.0;
+
+
+    // scene.backgroundColor = sky;
+    scene.backgroundColor = Color( 0.2f, 0.3f, 0.5f );
+    // scene.amLight.I_a = sky * 0.25f;
     scene.amLight.I_a = Color( 1.0f, 1.0f, 1.0f ) * 0.25f;
-    
     
 
 // Define materials.
@@ -309,38 +321,44 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     // blue, yellow, pink, white
     // Reflective water light blue.
     Material water = Material();
-    water.k_d = Color( 0.8f, 0.4f, 0.4f );          // diffuse
-    water.k_a = water.k_d;                          // ambient
-    water.k_r = Color( 0.8f, 0.8f, 0.8f ) / 1.5f;   // specular (reflection)
-    water.k_rg = Color( 0.8f, 0.8f, 0.8f ) / 3.0f;  // reflected ray colour
-    water.n = 64.0f;                                // shininess coeff, 0 to 128.0
-                                                    // highlights become smaller, sharper
+    water.k_d = waterBlue;     // diffuse
+    water.k_a = water.k_d;     // ambient
+    water.k_r = black;         // specular (reflection)
+    water.k_rg = white / 4.0;  // reflected ray colour. white = mirror
+    water.n = 0.0f;            // shininess coeff, 0 to 128.0 affecting r
+                               // specular becomes smaller, sharper
     
-    Material pink = Material();
-    pink.k_d = Color( 0.973f, 0.831f, 0.871f );
-    pink.k_a = pink.k_d;
-    pink.k_r = Color( 1.0f, 1.0f, 1.0f ); // Color( 0.8f, 0.8f, 0.8f ) / 1.5f;
-    pink.k_rg = Color( 0.0f, 0.0f, 0.0f ); // Color( 0.8f, 0.8f, 0.8f ) / 3.0f;
-    pink.n = 64.0f;
+    Material pinkMat = Material();
+    pinkMat.k_d = Color( 0.973f, 0.831f, 0.871f );
+    pinkMat.k_a = pinkMat.k_d;
+    pinkMat.k_r = Color( 1.0f, 1.0f, 1.0f ); // Color( 0.8f, 0.8f, 0.8f ) / 1.5f;
+    pinkMat.k_rg = Color( 0.0f, 0.0f, 0.0f ); // Color( 0.8f, 0.8f, 0.8f ) / 3.0f;
+    pinkMat.n = 64.0f;
     
     Material darkWater = Material();
     darkWater.k_d = Color( 0.255f, 0.408f, 0.569f );
     darkWater.k_a = darkWater.k_d;
-    darkWater.k_rg = Color( 0.0f, 0.0f, 0.0f );
-    darkWater.k_r = Color( 1.0f, 1.0f, 1.0f );
+    darkWater.k_r = Color( 0.0f, 0.0f, 0.0f );
+    darkWater.k_rg = Color( 1.0f, 1.0f, 1.0f ) * 0.5;
     darkWater.n = 128.0f;
     
-    Material test = Material();
-    test.k_d = Color( 1.0f, 1.0f, 1.0f );
-    test.k_a = test.k_d;
-    test.k_r = Color( 1.0f, 1.0f, 1.0f );
-    test.k_rg = Color( 1.0f, 1.0f, 1.0f );
-    test.n = 128.0f;
+    Material testWhite = Material();
+    testWhite.k_d = Color( 1.0f, 1.0f, 1.0f ) * 0.8f;
+    testWhite.k_a = testWhite.k_d;
+    testWhite.k_r = black;
+    testWhite.k_rg = Color( 1.0f, 1.0f, 1.0f );
+    testWhite.n = 0.0f;
     
+    Material testBlack = Material();
+    testBlack.k_d = black;
+    testBlack.k_a = testBlack.k_d;
+    testBlack.k_r = black;
+    testBlack.k_rg = white * 0.1;
+    testBlack.n = 0.0f;
     // Add more materials here.
     
     // Insert into scene materials vector.
-    scene.materials = { water, pink, darkWater, test };
+    scene.materials = { water, pinkMat, darkWater, testWhite, testBlack };
 
 
 // Define point light sources.
@@ -349,7 +367,8 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
 
     // big sun directional light?
     // Position, Colour
-    PointLightSource light0 = { Vector3d(100.0, 120.0, 10.0), Color(0.553f, 0.729f, 0.867f) };
+    // PointLightSource light0 = { Vector3d(100.0, 120.0, 10.0), Color(0.553f, 0.729f, 0.867f) };
+    PointLightSource light0 = { Vector3d(100.0, 120.0, 10.0), white * 0.7f };
 
     scene.ptLights = { light0 };
     
@@ -358,26 +377,30 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     // requirement: use all the surface primitive types
     // plane, sphere, tri
 
-    scene.surfaces.resize(3);
+    scene.surfaces.resize(5);
 
     // Floor.
-    auto horzPlane = new Plane( 0.0, 1.0, 0.0, 0.0, scene.materials[2] );
+    auto horzPlane = new Plane( 0.0, 1.0, 0.0, 0.0, scene.materials[0] );
     
     // Sphere.
-    auto smallSphere = new Sphere( Vector3d( 75.0, 10.0, 40.0 ), 12.0, scene.materials[1] );
+    auto smallSphere = new Sphere( Vector3d( 75.0, 10.0, 40.0 ), 12.0, scene.materials[2] );
 
     // Cube +y face.
     auto cubePosYTri1 = new Triangle( Vector3d( 50.0, 20.0, 90.0 ),
                                       Vector3d( 50.0, 20.0, 70.0 ),
                                       Vector3d( 30.0, 20.0, 70.0 ),
-                                      scene.materials[0] );
+                                      scene.materials[1] );
 
     // Sphere. Center coords, radius
-    auto testSphere = new Sphere( Vector3d( 56.8, 0.0, 29.0 ), 10.0, scene.materials[3] );
+    auto testWhiteSphere = new Sphere( Vector3d( 25.0, 2.5, 25.0 ), 10.0, scene.materials[3] );
+    
+    // Sphere. Center coords, radius
+    auto testBlackSphere = new Sphere( Vector3d( 25.0, 15.0, 60.0 ), 20.0, scene.materials[4] );
     
     
     scene.surfaces = { horzPlane, smallSphere,
-                       cubePosYTri1, testSphere };
+                       cubePosYTri1, testWhiteSphere,
+                       testBlackSphere };
     
 // Define camera.
 
@@ -389,3 +412,4 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
                            -1.0, 1.0, 3.0,  // bottom, top, near
                            imageWidth, imageHeight );  // image_width, image_height
 }
+

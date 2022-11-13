@@ -164,6 +164,8 @@ Color Raytrace::TraceRay( const Ray &ray, const Scene &scene,
     if ( reflectLevels != 0 )
     {
         Vector3d R = 2.0 * dot( N, V ) * N - V;
+        
+        
         Ray reflRay = Ray( pt, R );
         // recurse
         Color IReflected = TraceRay( reflRay, scene, reflectLevels - 1, hasShadow );
