@@ -307,7 +307,6 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     Color black = Color( 0.0f, 0.0f, 0.0f );
     Color pink = Color( 0.973f, 0.831f, 0.871f );
     Color blue = Color( 0.0f, 0.0f, 1.0f );
-    Color midgrey = white / 2.0;
 
 
     scene.backgroundColor = Color( 0.2f, 0.3f, 0.5f );
@@ -375,7 +374,7 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     // requirement: use all the surface primitive types
     // plane, sphere, tri
 
-    scene.surfaces.resize(5);
+    scene.surfaces.resize(5); // does this even do anything
     double scale = 7.0;
     Material bodyMat = scene.materials[3];
 
@@ -425,6 +424,80 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
                                    Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
                                    Vector3d( 0.0 * scale, 1.0 * scale, 1.0 * scale ),
                                    bodyMat );
+    // Legs: Thighs
+    auto legLOut = new Triangle( Vector3d( 4.0 * scale, 3.0 * scale, 2.0 * scale ),
+                                 Vector3d( 0.0 * scale, 2.0 * scale, 1.0 * scale ),
+                                 Vector3d( 0.0 * scale, 1.0 * scale, 1.0 * scale ),
+                                 bodyMat );
+    
+    auto legLMid = new Triangle( Vector3d( 4.0 * scale, 3.0 * scale, 2.0 * scale ),
+                                 Vector3d( 0.0 * scale, 1.0 * scale, 1.0 * scale ),
+                                 Vector3d( 0.0 * scale, 2.0 * scale, 0.0 * scale ),
+                                 bodyMat );
+
+    auto legLTop = new Triangle( Vector3d( 4.0 * scale, 3.0 * scale, 2.0 * scale ),
+                                 Vector3d( 0.0 * scale, 2.0 * scale, 0.0 * scale ),
+                                 Vector3d( 0.0 * scale, 2.0 * scale, 1.0 * scale ),
+                                 bodyMat );
+
+    auto legROut = new Triangle( Vector3d( 4.0 * scale, 3.0 * scale, -2.0 * scale ),
+                                 Vector3d( 0.0 * scale, 2.0 * scale, -1.0 * scale ),
+                                 Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
+                                 bodyMat );
+
+    auto legRMid = new Triangle( Vector3d( 4.0 * scale, 3.0 * scale, -2.0 * scale ),
+                                 Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
+                                 Vector3d( 0.0 * scale, 2.0 * scale, 0.0 * scale ),
+                                 bodyMat );
+
+    auto legRTop = new Triangle( Vector3d( 4.0 * scale, 3.0 * scale, -2.0 * scale ),
+                                 Vector3d( 0.0 * scale, 2.0 * scale, 0.0 * scale ),
+                                 Vector3d( 0.0 * scale, 2.0 * scale, -1.0 * scale ),
+                                 bodyMat );
+
+    // Legs: Calves
+    auto calfL = new Triangle( Vector3d( 4.0 * scale, 3.0 * scale, 2.0 * scale ),
+                               Vector3d( 1.0 * scale, 1.0 * scale, 1.0 * scale ),
+                               Vector3d( 4.0 * scale, 2.5 * scale, 2.0 * scale ),
+                               bodyMat );
+
+    auto calfR = new Triangle( Vector3d( 4.0 * scale, 3.0 * scale, -2.0 * scale ),
+                               Vector3d( 1.0 * scale, 1.0 * scale, -1.0 * scale ),
+                               Vector3d( 4.0 * scale, 2.5 * scale, -2.0 * scale ),
+                               bodyMat );
+    
+    // Feet
+    auto footLTop = new Triangle( Vector3d( 1.0 * scale, 1.0 * scale, 1.0 * scale ),
+                                  Vector3d( 3.0 * scale, 0.0 * scale, 1.5 * scale ),
+                                  Vector3d( 3.0 * scale, 0.0 * scale, 0.5 * scale ),
+                                  bodyMat );
+
+    auto footLOut = new Triangle( Vector3d( 1.0 * scale, 1.0 * scale, 1.0 * scale ),
+                                  Vector3d( 1.0 * scale, 0.0 * scale, 1.0 * scale ),
+                                  Vector3d( 3.0 * scale, 0.0 * scale, 1.5 * scale ),
+                                  bodyMat );
+
+    auto footLIn = new Triangle( Vector3d( 1.0 * scale, 1.0 * scale, 1.0 * scale ),
+                                 Vector3d( 3.0 * scale, 0.0 * scale, 0.5 * scale ),
+                                 Vector3d( 1.0 * scale, 0.0 * scale, 1.0 * scale ),
+                                 bodyMat );
+
+    auto footRTop = new Triangle( Vector3d( 1.0 * scale, 1.0 * scale, -1.0 * scale ),
+                                  Vector3d( 3.0 * scale, 0.0 * scale, -1.5 * scale ),
+                                  Vector3d( 3.0 * scale, 0.0 * scale, -0.5 * scale ),
+                                  bodyMat );
+
+    auto footROut = new Triangle( Vector3d( 1.0 * scale, 1.0 * scale, -1.0 * scale ),
+                                  Vector3d( 1.0 * scale, 0.0 * scale, -1.0 * scale ),
+                                  Vector3d( 3.0 * scale, 0.0 * scale, -1.5 * scale ),
+                                  bodyMat );
+
+    auto footRIn = new Triangle( Vector3d( 1.0 * scale, 1.0 * scale, -1.0 * scale ),
+                                 Vector3d( 3.0 * scale, 0.0 * scale, -0.5 * scale ),
+                                 Vector3d( 1.0 * scale, 0.0 * scale, -1.0 * scale ),
+                                 bodyMat );
+
+
     /*
     // Sphere.
     auto smallSphere = new Sphere( Vector3d( 75.0, 10.0, 40.0 ), 12.0, scene.materials[2] );
@@ -442,11 +515,17 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     auto testBlackSphere = new Sphere( Vector3d( 25.0, 15.0, 60.0 ), 20.0, scene.materials[4] );
     */
     
-    scene.surfaces = { horzPlane, head, 
+    scene.surfaces = { head, 
                        bodyTop1, bodyTop2,
                        bodyFront1, bodyFront2,
                        bodyBack1, bodyBack2,
-                       bodyLeft, bodyRight };
+                       bodyLeft, bodyRight,
+                       legLOut, legLMid, legLTop,
+                       legROut, legRMid, legRTop,
+                       calfL, calfR,
+                       footLTop, footLOut, footLIn,
+                       footRTop, footROut, footRIn,
+                       horzPlane };
                        /*
                         smallSphere,
                        cubePosYTri1, testWhiteSphere,
