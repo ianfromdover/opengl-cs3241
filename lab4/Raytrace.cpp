@@ -114,6 +114,7 @@ Color Raytrace::TraceRay( const Ray &ray, const Scene &scene,
     
     result = nearestHitRec.material.k_d;
     
+    /*
     for (PointLightSource lightSrc : scene.ptLights )
     {
         Vector3d L = ( lightSrc.position - nearestHitRec.p );
@@ -122,7 +123,7 @@ Color Raytrace::TraceRay( const Ray &ray, const Scene &scene,
         
         result += computePhongLighting(L, N, V, nearestHitRec.material, lightSrc);
     }
-    
+    */
 
 
 // Add to result the global ambient lighting.

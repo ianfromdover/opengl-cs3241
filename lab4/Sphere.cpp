@@ -12,24 +12,40 @@
 
 using namespace std;
 
-double findT( const Ray &r, double tmin, double tmax, double radius, Vector3d rTranslatedOrig )
+// returns whether there is a hit and its t-value if there is.
+// return type of [bool, double]
+double * findT( const Ray &r, double tmin, double tmax, double radius, Vector3d rTranslatedOrig )
 {
+    static double result[2] = { false, 0 };
+    
+    // to find the intersection, sub the ray eqn P(t) into sphere eqn
+    // P • P - r^2 = 0
+    // expanding the equation with P(t) = Ro + t * Rd, we get quad eqn
+    // at^2 + bt + c = 0, where
     double a = dot( r.direction(), r.direction() );
     double b = dot( r.direction(), rTranslatedOrig ) * 2;
     double c = dot( rTranslatedOrig, rTranslatedOrig ) - ( radius * radius );
     
-    double discriminant = ( b * b ) - 4 * ( a * c );
+    double discriminant = ( b * b ) - 4.0 * ( a * c );
 
-    if ( discriminant < 0 ) return false;
+    if ( discriminant < 0 ) return result; // ray does not hit the sphere
+    
     else
     {
-        double tA = ( -b + sqrt(discriminant) ) / ( 2 * a );
-        double tB = ( -b - sqrt(discriminant) ) / ( 2 * a );
+        // assuming that all objects are opaque
+        // if there are 2 intersections
+        // choose the closer intersection (smaller t value)
+        double tA = ( -b + sqrt(discriminant) ) / ( 2.0 * a );
+        double tB = ( -b - sqrt(discriminant) ) / ( 2.0 * a );
         
         double t = ( tA < tB ) ? tA : tB;
+        // if there is only 1 intersection, both values will be equal
         
-        if ( t < tmin || t > tmax ) return false;
-        return t;
+        if ( t < tmin || t > tmax ) return result;
+        
+        result[0] = true;
+        result[1] = t;
+        return result;
     }
 }
 
@@ -40,66 +56,34 @@ bool Sphere::hit( const Ray &r, double tmin, double tmax, SurfaceHitRecord &rec 
     //***********************************************
     
     Vector3d rTranslatedOrig = r.origin() - center;
+    double *t;
+    t = findT( r, tmin, tmax, radius, rTranslatedOrig );
     
-    // to find the intersection, sub the ray eqn P(t) into sphere eqn
-    // P • P - r^2 = 0
-    // expanding the equation with P(t) = Ro + t * Rd, we get quad eqn
-    // at^2 + bt + c = 0, where
-    double a = dot( r.direction(), r.direction() );
-    double b = dot( r.direction(), rTranslatedOrig ) * 2;
-    double c = dot( rTranslatedOrig, rTranslatedOrig ) - ( radius * radius );
+    if (!t[0]) return false;
     
-    double discriminant = ( b * b ) - 4 * ( a * c );
-
-    if ( discriminant < 0 ) return false; // ray does not hit the sphere
-    else // discrmt == 0 || discrmt > 0, 1 or 2 intersections with sphere
-    {
-        // if there are 2 intersections
-        // choose the closer intersection (smaller t value)
-        // since we assume that all objects are opaque
-        double tA = ( -b + sqrt(discriminant) ) / ( 2 * a );
-        double tB = ( -b - sqrt(discriminant) ) / ( 2 * a );
-        
-        double t = ( tA < tB ) ? tA : tB;
-        // if there is only 1 intersection, both values will be equal
-        
-        if ( t < tmin || t > tmax ) return false;
-        
-        Vector3d pt = rTranslatedOrig + t * r.direction();
-        // populate hit record
-        rec.t = t;
-        rec.p = r.pointAtParam(t);
-        rec.normal = pt / pt.unitVector();
-        rec.material = material;
-        return true;
-    }
+    Vector3d pt = rTranslatedOrig + t[1] * r.direction();
+    
+    // populate hit record
+    rec.t = t[1];
+    rec.p = r.pointAtParam(t[1]);
+    rec.normal = pt / pt.unitVector();
+    rec.material = material;
+    return true;
 }
 
 
-
+// ray = the shadow ray that hit the sphere
+// returns true if produces shadow
 bool Sphere::shadowHit( const Ray &r, double tmin, double tmax ) const 
 {
     //***********************************************
     //*********** WRITE YOUR CODE HERE **************
     //***********************************************
     
-    // identical logic to above. only change at the bottom line
     Vector3d rTranslatedOrig = r.origin() - center;
     
-    double a = dot( r.direction(), r.direction() );
-    double b = dot( r.direction(), rTranslatedOrig ) * 2;
-    double c = dot( rTranslatedOrig, rTranslatedOrig ) - ( radius * radius );
+    double *t;
+    t = findT(r, tmin, tmax, radius, rTranslatedOrig);
     
-    double discriminant = ( b * b ) - 4 * ( a * c );
-    
-    if ( discriminant < 0 ) return false;
-    else
-    {
-        double tA = ( -b + sqrt(discriminant) ) / ( 2 * a );
-        double tB = ( -b - sqrt(discriminant) ) / ( 2 * a );
-        
-        double t = ( tA < tB ) ? tA : tB;
-        
-        return ( t >= tmin && t <= tmax );
-    }
+    return t[0];
 }
