@@ -29,11 +29,11 @@ static constexpr int hasShadow1 = true;
 static constexpr std::string_view outImageFile1 = "out1.png";
 
 // Constants for Scene 2.
-static constexpr int imageWidth2 = 640;
-static constexpr int imageHeight2 = 480;
+static constexpr int imageWidth2 = 1920;
+static constexpr int imageHeight2 = 1080;
 static constexpr int reflectLevels2 = 2;  // 0 -- object does not reflect scene.
 static constexpr int hasShadow2 = true;
-static constexpr std::string_view outImageFile2 = "3c.png";
+static constexpr std::string_view outImageFile2 = "img_scene2.png";
 
 
 
@@ -96,8 +96,6 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight );
 int main()
 {
 // Define Scene 1.
-// TODO: Uncomment before submission
-/*
     Scene scene1;
     DefineScene1( scene1, imageWidth1, imageHeight1 );
 
@@ -113,7 +111,6 @@ int main()
     {
         delete surface;
     }
-*/
 
 // Define Scene 2.
 
@@ -134,7 +131,7 @@ int main()
     }
 
     std::cout << "All done. Press Enter to exit." << std::endl;
-    // TODO: uncomment // std::cin.get();
+    std::cin.get();
     return 0;
 }
 
@@ -310,12 +307,12 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
 
 
     scene.backgroundColor = Color( 0.2f, 0.3f, 0.5f );
-    scene.amLight.I_a = waterBlue * 0.35f;
+    // scene.amLight.I_a = waterBlue * 0.35f;
+    scene.amLight.I_a = white * 0.2f;
     
 
 // Define materials.
 
-    // blue, yellow, pink, white
     // Reflective water light blue.
     Material water = Material();
     water.k_d = waterBlue;     // diffuse
@@ -324,21 +321,6 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     water.k_rg = white / 2.0;  // reflected ray colour. white = mirror
     water.n = 0.0f;            // shininess coeff, 0 to 128.0 affecting r
                                // specular becomes smaller, sharper
-    
-    Material pinkMat = Material();
-    pinkMat.k_d = Color( 0.973f, 0.831f, 0.871f );
-    pinkMat.k_a = pinkMat.k_d;
-    pinkMat.k_r = Color( 1.0f, 1.0f, 1.0f ); // Color( 0.8f, 0.8f, 0.8f ) / 1.5f;
-    pinkMat.k_rg = Color( 0.0f, 0.0f, 0.0f ); // Color( 0.8f, 0.8f, 0.8f ) / 3.0f;
-    pinkMat.n = 64.0f;
-    
-    Material darkWater = Material();
-    darkWater.k_d = Color( 0.255f, 0.408f, 0.569f );
-    darkWater.k_a = darkWater.k_d;
-    darkWater.k_r = Color( 0.0f, 0.0f, 0.0f );
-    darkWater.k_rg = Color( 1.0f, 1.0f, 1.0f ) * 0.5;
-    darkWater.n = 128.0f;
-    
     Material whiteMat = Material();
     whiteMat.k_d = white;
     whiteMat.k_a = whiteMat.k_d;
@@ -346,16 +328,52 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     whiteMat.k_rg = black;
     whiteMat.n = 0.0f;
     
-    Material testBlack = Material();
-    testBlack.k_d = black;
-    testBlack.k_a = testBlack.k_d;
-    testBlack.k_r = black;
-    testBlack.k_rg = white * 0.1;
-    testBlack.n = 0.0f;
-    // Add more materials here.
+    Material shinyBlack = Material();
+    shinyBlack.k_d = black;
+    shinyBlack.k_a = shinyBlack.k_d;
+    shinyBlack.k_r = white;
+    shinyBlack.k_rg = white * 0.2;
+    shinyBlack.n = 128.0f;
+
+    Material mirror = Material();
+    mirror.k_d = black;
+    mirror.k_a = mirror.k_d;
+    mirror.k_r = white;
+    mirror.k_rg = white;
+    mirror.n = 128.0f;
+    
+    Material shoeBlack = Material();
+    shoeBlack.k_d = Color( 0.1f, 0.1f, 0.1f );
+    shoeBlack.k_a = shoeBlack.k_d;
+    shoeBlack.k_r = white * 0.2;
+    shoeBlack.k_rg = black;
+    shoeBlack.n = 32.0f;
+
+    Material pinkMat = Material();
+    pinkMat.k_d = Color( 0.973f, 0.673f, 0.903f );
+    pinkMat.k_a = pinkMat.k_d;
+    pinkMat.k_r = Color( 1.0f, 0.8f, 0.9f );
+    pinkMat.k_rg = Color( 0.1f, 0.1f, 0.1f );
+    pinkMat.n = 64.0f;
+
+    Material yellowMat = Material();
+    yellowMat.k_d = Color( 1.0f, 0.92f, 0.0f );
+    yellowMat.k_a = yellowMat.k_d;
+    yellowMat.k_r = Color( 1.0f, 1.0f, 1.0f );
+    yellowMat.k_rg = white * 0.2f;
+    yellowMat.n = 72.0f;
+    
+    Material redShirtMat = Material();
+    redShirtMat.k_d = Color( 0.933f, 0.393f, 0.415f );
+    redShirtMat.k_a = redShirtMat.k_d;
+    redShirtMat.k_r = Color( 1.0f, 1.0f, 1.0f );
+    redShirtMat.k_rg = black;
+    redShirtMat.n = 72.0f;
+    
     
     // Insert into scene materials vector.
-    scene.materials = { water, pinkMat, darkWater, whiteMat, testBlack };
+    scene.materials = { water, whiteMat, shinyBlack, mirror, 
+                        shoeBlack, pinkMat, yellowMat, redShirtMat };
 
 
 // Define point light sources.
@@ -363,67 +381,74 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     scene.ptLights.resize(1);
 
     // Sun.
-    // PointLightSource light0 = { Vector3d(100.0, 120.0, 10.0), Color(0.553f, 0.729f, 0.867f) };
-    // TODO: eval col change
     PointLightSource light0 = { Vector3d(60.0, 220.0, 90.0), white * 0.7f };
 
     scene.ptLights = { light0 };
     
 // Define surface primitives.
     
-    // requirement: use all the surface primitive types
-    // plane, sphere, tri
-
-    scene.surfaces.resize(5); // does this even do anything
+    scene.surfaces.resize(9);
     double scale = 7.0;
-    Material bodyMat = scene.materials[3];
+    double ballHeight = 0.75f;
+    Material bodyMat = scene.materials[1];
+    Material shirtMat = scene.materials[7];
+    Material shoesMat = scene.materials[4];
 
     // Floor.
     auto horzPlane = new Plane( 0.0, 1.0, 0.0, 0.0, scene.materials[0] );
-    
+
+// Objects around
+    auto pinkBall = new Sphere( Vector3d( 7.0 * scale, 3.0 * scale, 13.0 * scale ), 4.0 * scale, scene.materials[5] );
+    auto yellowBall = new Sphere( Vector3d( 9.0 * scale, ballHeight * scale, 2.0 * scale ), 1.0 * scale, scene.materials[6] );
+    auto yellowBall2 = new Sphere( Vector3d( 0.0 * scale, 7.0 * scale, 22.0 * scale ), 9.0 * scale, scene.materials[6] );
+    auto ballMirror = new Sphere( Vector3d( 7.0 * scale, 1.75f * scale, -5.0 * scale ), 2.25 * scale, scene.materials[3] );
+
+// Human.
     // Head.
-    auto head = new Sphere( Vector3d( 4.0 * scale, 6.0 * scale, 0.0 * scale ), 1.0 * scale, scene.materials[3] );
+    auto head = new Sphere( Vector3d( 4.0 * scale, 6.0 * scale, 0.0 * scale ), 1.0 * scale, scene.materials[1] );
+    auto eyeL = new Sphere( Vector3d( 4.925 * scale, 6.0 * scale, 0.0 * scale ), 0.15 * scale, scene.materials[2] );
+    auto eyeR = new Sphere( Vector3d( 4.775 * scale, 6.0 * scale, -0.6 * scale ), 0.15 * scale, scene.materials[2] );
 
     // Body
     auto bodyLeft = new Triangle( Vector3d( 2.0 * scale, 6.0 * scale, 2.0 * scale ),
                                   Vector3d( 0.0 * scale, 1.0 * scale, 1.0 * scale ),
                                   Vector3d( 3.0 * scale, 5.0 * scale, 2.0 * scale ),
-                                  bodyMat );
+                                  shirtMat );
 
     auto bodyRight = new Triangle( Vector3d( 2.0 * scale, 6.0 * scale, -2.0 * scale ),
                                    Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
                                    Vector3d( 3.0 * scale, 5.0 * scale, -2.0 * scale ),
-                                   bodyMat );
+                                   shirtMat );
     
     auto bodyTop1 = new Triangle( Vector3d( 2.0 * scale, 6.0 * scale, -2.0 * scale ),
                                   Vector3d( 2.0 * scale, 6.0 * scale, 2.0 * scale ),
                                   Vector3d( 3.0 * scale, 5.0 * scale, 2.0 * scale ),
-                                  bodyMat );
+                                  shirtMat );
 
     auto bodyTop2 = new Triangle( Vector3d( 2.0 * scale, 6.0 * scale, -2.0 * scale ),
                                   Vector3d( 3.0 * scale, 5.0 * scale, 2.0 * scale ),
                                   Vector3d( 3.0 * scale, 5.0 * scale, -2.0 * scale ),
-                                  bodyMat );
+                                  shirtMat );
 
     auto bodyFront1 = new Triangle( Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
                                     Vector3d( 3.0 * scale, 5.0 * scale, -2.0 * scale ),
                                     Vector3d( 3.0 * scale, 5.0 * scale, 2.0 * scale ),
-                                    bodyMat );
+                                    shirtMat );
 
     auto bodyFront2 = new Triangle( Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
                                     Vector3d( 3.0 * scale, 5.0 * scale, 2.0 * scale ),
                                     Vector3d( 0.0 * scale, 1.0 * scale, 1.0 * scale ),
-                                    bodyMat );
+                                    shirtMat );
 
     auto bodyBack1 = new Triangle( Vector3d( 2.0 * scale, 6.0 * scale, -2.0 * scale ),
                                    Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
                                    Vector3d( 2.0 * scale, 6.0 * scale, 2.0 * scale ),
-                                   bodyMat );
+                                   shirtMat );
 
     auto bodyBack2 = new Triangle( Vector3d( 2.0 * scale, 6.0 * scale, 2.0 * scale ),
                                    Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
                                    Vector3d( 0.0 * scale, 1.0 * scale, 1.0 * scale ),
-                                   bodyMat );
+                                   shirtMat );
     // Legs: Thighs
     auto legLOut = new Triangle( Vector3d( 4.0 * scale, 3.0 * scale, 2.0 * scale ),
                                  Vector3d( 0.0 * scale, 2.0 * scale, 1.0 * scale ),
@@ -470,52 +495,36 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     auto footLTop = new Triangle( Vector3d( 1.0 * scale, 1.0 * scale, 1.0 * scale ),
                                   Vector3d( 3.0 * scale, 0.0 * scale, 1.5 * scale ),
                                   Vector3d( 3.0 * scale, 0.0 * scale, 0.5 * scale ),
-                                  bodyMat );
+                                  shoesMat );
 
     auto footLOut = new Triangle( Vector3d( 1.0 * scale, 1.0 * scale, 1.0 * scale ),
                                   Vector3d( 1.0 * scale, 0.0 * scale, 1.0 * scale ),
                                   Vector3d( 3.0 * scale, 0.0 * scale, 1.5 * scale ),
-                                  bodyMat );
+                                  shoesMat );
 
     auto footLIn = new Triangle( Vector3d( 1.0 * scale, 1.0 * scale, 1.0 * scale ),
                                  Vector3d( 3.0 * scale, 0.0 * scale, 0.5 * scale ),
                                  Vector3d( 1.0 * scale, 0.0 * scale, 1.0 * scale ),
-                                 bodyMat );
+                                 shoesMat );
 
     auto footRTop = new Triangle( Vector3d( 1.0 * scale, 1.0 * scale, -1.0 * scale ),
                                   Vector3d( 3.0 * scale, 0.0 * scale, -1.5 * scale ),
                                   Vector3d( 3.0 * scale, 0.0 * scale, -0.5 * scale ),
-                                  bodyMat );
+                                  shoesMat );
 
     auto footROut = new Triangle( Vector3d( 1.0 * scale, 1.0 * scale, -1.0 * scale ),
                                   Vector3d( 1.0 * scale, 0.0 * scale, -1.0 * scale ),
                                   Vector3d( 3.0 * scale, 0.0 * scale, -1.5 * scale ),
-                                  bodyMat );
+                                  shoesMat );
 
     auto footRIn = new Triangle( Vector3d( 1.0 * scale, 1.0 * scale, -1.0 * scale ),
                                  Vector3d( 3.0 * scale, 0.0 * scale, -0.5 * scale ),
                                  Vector3d( 1.0 * scale, 0.0 * scale, -1.0 * scale ),
-                                 bodyMat );
+                                 shoesMat );
 
 
-    /*
-    // Sphere.
-    auto smallSphere = new Sphere( Vector3d( 75.0, 10.0, 40.0 ), 12.0, scene.materials[2] );
-
-    // Cube +y face.
-    auto cubePosYTri1 = new Triangle( Vector3d( 50.0, 20.0, 90.0 ),
-                                      Vector3d( 50.0, 20.0, 70.0 ),
-                                      Vector3d( 30.0, 20.0, 70.0 ),
-                                      scene.materials[1] );
-
-    // Sphere. Center coords, radius
-    auto testWhiteSphere = new Sphere( Vector3d( 25.0, 2.5, 25.0 ), 10.0, scene.materials[3] );
-    
-    // Sphere. Center coords, radius
-    auto testBlackSphere = new Sphere( Vector3d( 25.0, 15.0, 60.0 ), 20.0, scene.materials[4] );
-    */
-    
-    scene.surfaces = { head, 
+    scene.surfaces = { pinkBall, yellowBall, yellowBall2,
+                       head, eyeL, eyeR,
                        bodyTop1, bodyTop2,
                        bodyFront1, bodyFront2,
                        bodyBack1, bodyBack2,
@@ -525,12 +534,7 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
                        calfL, calfR,
                        footLTop, footLOut, footLIn,
                        footRTop, footROut, footRIn,
-                       horzPlane };
-                       /*
-                        smallSphere,
-                       cubePosYTri1, testWhiteSphere,
-                       testBlackSphere };
-                       */
+                       horzPlane, ballMirror };
     
 // Define camera.
 
