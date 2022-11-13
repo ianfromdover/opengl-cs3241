@@ -1,7 +1,7 @@
 //============================================================
 // STUDENT NAME: Hong Yi En, Ian
 // NUS User ID.: E0543721
-// COMMENTS TO GRADER:
+// COMMENTS TO GRADER: None
 //
 // ============================================================
 
@@ -110,13 +110,13 @@ Color Raytrace::TraceRay( const Ray &ray, const Scene &scene,
     //*********** WRITE YOUR CODE HERE **************
     //***********************************************
     
-    Vector3d LOrig;
+    Vector3d LOrig; // original magnitude
     Vector3d L;
     Vector3d pt = nearestHitRec.p;
     Material mat = nearestHitRec.material;
     
     Color phongCol;
-    Ray shadRay;
+    Ray shadowRay;
     double kShadow = 0.0;
     
     for ( PointLightSource lightSrc : scene.ptLights )
@@ -132,11 +132,11 @@ Color Raytrace::TraceRay( const Ray &ray, const Scene &scene,
             // for each surface
             for ( Surface* surf : scene.surfaces )
             {
-                shadRay = Ray( pt, LOrig );
-                shadRay.makeUnitDirection();
+                shadowRay = Ray( pt, LOrig );
+                shadowRay.makeUnitDirection();
                 
                 // if L passes through it, add shadow to the color
-                if ( surf->shadowHit( shadRay, DEFAULT_TMIN, LOrig.length() ) )
+                if ( surf->shadowHit( shadowRay, DEFAULT_TMIN, LOrig.length() ) )
                 {
                     phongCol *= kShadow;
                 }
@@ -150,15 +150,26 @@ Color Raytrace::TraceRay( const Ray &ray, const Scene &scene,
     //***********************************************
     //*********** WRITE YOUR CODE HERE **************
     //***********************************************
+    
+    // Ia * ka
     result += scene.amLight.I_a * mat.k_a;
-
 
 // Add to result the reflection of the scene.
 
     //***********************************************
     //*********** WRITE YOUR CODE HERE **************
     //***********************************************
-
+    
+    // krg * Ireflected
+    if ( reflectLevels != 0 )
+    {
+        Vector3d R = 2.0 * dot( N, V ) * N - V;
+        Ray reflRay = Ray( pt, R );
+        // recurse
+        Color IReflected = TraceRay( reflRay, scene, reflectLevels - 1, hasShadow );
+        
+        result += ( mat.k_rg * IReflected );
+    }
 
     return result;
 }

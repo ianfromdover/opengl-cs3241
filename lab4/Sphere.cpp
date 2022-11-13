@@ -52,11 +52,10 @@ bool Sphere::hit( const Ray &r, double tmin, double tmax, SurfaceHitRecord &rec 
     double t = findT(r, tmin, tmax, radius, rTranslatedOrig);
     if ( t == false ) return false; // assumes that t is never 0
         
-    Vector3d pt = rTranslatedOrig + t * r.direction();
     // populate hit record
     rec.t = t;
     rec.p = r.pointAtParam(t);
-    rec.normal = pt / pt.unitVector();
+    rec.normal = rec.p - center;
     rec.material = material;
     return true;
 }
