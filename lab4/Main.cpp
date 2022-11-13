@@ -1,8 +1,7 @@
 //============================================================
 // STUDENT NAME: Hong Yi En, Ian
 // NUS User ID.: E0543721
-// COMMENTS TO GRADER:
-//
+// COMMENTS TO GRADER: None
 // ============================================================
 
 #include "Util.h"
@@ -34,7 +33,7 @@ static constexpr int imageWidth2 = 640;
 static constexpr int imageHeight2 = 480;
 static constexpr int reflectLevels2 = 2;  // 0 -- object does not reflect scene.
 static constexpr int hasShadow2 = true;
-static constexpr std::string_view outImageFile2 = "img_scene2.png";
+static constexpr std::string_view outImageFile2 = "img_scene2b.png";
 
 
 
@@ -97,7 +96,8 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight );
 int main()
 {
 // Define Scene 1.
-
+// TODO: Uncomment before submission
+/*
     Scene scene1;
     DefineScene1( scene1, imageWidth1, imageHeight1 );
 
@@ -113,8 +113,8 @@ int main()
     {
         delete surface;
     }
+*/
 
-/*
 // Define Scene 2.
 
     Scene scene2;
@@ -132,7 +132,6 @@ int main()
     {
         delete surface;
     }
-*/
 
     std::cout << "All done. Press Enter to exit." << std::endl;
     // TODO: uncomment // std::cin.get();
@@ -298,7 +297,95 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     //***********************************************
     //*********** WRITE YOUR CODE HERE **************
     //***********************************************
+    scene.backgroundColor = Color( 0.2f, 0.3f, 0.5f );
 
-    // use all the surface primitive types
+    // light blue cool col temp sun
+    scene.amLight.I_a = Color( 1.0f, 1.0f, 1.0f ) * 0.25f;
+    
+    
+
+// Define materials.
+
+    // blue, yellow, pink, white
+    // Reflective water light blue.
+    Material water = Material();
+    water.k_d = Color( 0.8f, 0.4f, 0.4f );          // diffuse
+    water.k_a = water.k_d;                          // ambient
+    water.k_r = Color( 0.8f, 0.8f, 0.8f ) / 1.5f;   // specular (reflection)
+    water.k_rg = Color( 0.8f, 0.8f, 0.8f ) / 3.0f;  // reflected ray colour
+    water.n = 64.0f;                                // shininess coeff, 0 to 128.0
+                                                    // highlights become smaller, sharper
+    
+    Material pink = Material();
+    pink.k_d = Color( 0.973f, 0.831f, 0.871f );
+    pink.k_a = pink.k_d;
+    pink.k_r = Color( 1.0f, 1.0f, 1.0f ); // Color( 0.8f, 0.8f, 0.8f ) / 1.5f;
+    pink.k_rg = Color( 0.0f, 0.0f, 0.0f ); // Color( 0.8f, 0.8f, 0.8f ) / 3.0f;
+    pink.n = 64.0f;
+    
+    Material darkWater = Material();
+    darkWater.k_d = Color( 0.255f, 0.408f, 0.569f );
+    darkWater.k_a = darkWater.k_d;
+    darkWater.k_rg = Color( 0.0f, 0.0f, 0.0f );
+    darkWater.k_r = Color( 1.0f, 1.0f, 1.0f );
+    darkWater.n = 128.0f;
+    
+    Material test = Material();
+    test.k_d = Color( 1.0f, 1.0f, 1.0f );
+    test.k_a = test.k_d;
+    test.k_r = Color( 1.0f, 1.0f, 1.0f );
+    test.k_rg = Color( 1.0f, 1.0f, 1.0f );
+    test.n = 128.0f;
+    
+    // Add more materials here.
+    
+    // Insert into scene materials vector.
+    scene.materials = { water, pink, darkWater, test };
+
+
+// Define point light sources.
+
+    scene.ptLights.resize(1);
+
+    // big sun directional light?
+    // Position, Colour
+    PointLightSource light0 = { Vector3d(100.0, 120.0, 10.0), Color(0.553f, 0.729f, 0.867f) };
+
+    scene.ptLights = { light0 };
+    
+// Define surface primitives.
+    
+    // requirement: use all the surface primitive types
     // plane, sphere, tri
+
+    scene.surfaces.resize(3);
+
+    // Floor.
+    auto horzPlane = new Plane( 0.0, 1.0, 0.0, 0.0, scene.materials[2] );
+    
+    // Sphere.
+    auto smallSphere = new Sphere( Vector3d( 75.0, 10.0, 40.0 ), 12.0, scene.materials[1] );
+
+    // Cube +y face.
+    auto cubePosYTri1 = new Triangle( Vector3d( 50.0, 20.0, 90.0 ),
+                                      Vector3d( 50.0, 20.0, 70.0 ),
+                                      Vector3d( 30.0, 20.0, 70.0 ),
+                                      scene.materials[0] );
+
+    // Sphere. Center coords, radius
+    auto testSphere = new Sphere( Vector3d( 56.8, 0.0, 29.0 ), 10.0, scene.materials[3] );
+    
+    
+    scene.surfaces = { horzPlane, smallSphere,
+                       cubePosYTri1, testSphere };
+    
+// Define camera.
+
+    scene.camera = Camera( Vector3d( 150.0, 120.0, 150.0 ),  // eye
+                           Vector3d( 45.0, 22.0, 55.0 ),  // lookAt
+                           Vector3d( 0.0, 1.0, 0.0 ),  //upVector
+                           (-1.0 * imageWidth) / imageHeight,  // left
+                           (1.0 * imageWidth) / imageHeight,  // right
+                           -1.0, 1.0, 3.0,  // bottom, top, near
+                           imageWidth, imageHeight );  // image_width, image_height
 }
