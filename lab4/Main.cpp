@@ -33,7 +33,7 @@ static constexpr int imageWidth2 = 640;
 static constexpr int imageHeight2 = 480;
 static constexpr int reflectLevels2 = 2;  // 0 -- object does not reflect scene.
 static constexpr int hasShadow2 = true;
-static constexpr std::string_view outImageFile2 = "3 buildMan";
+static constexpr std::string_view outImageFile2 = "3c.png";
 
 
 
@@ -310,10 +310,8 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     Color midgrey = white / 2.0;
 
 
-    // scene.backgroundColor = sky;
     scene.backgroundColor = Color( 0.2f, 0.3f, 0.5f );
-    // scene.amLight.I_a = sky * 0.25f;
-    scene.amLight.I_a = Color( 1.0f, 1.0f, 1.0f ) * 0.25f;
+    scene.amLight.I_a = waterBlue * 0.35f;
     
 
 // Define materials.
@@ -324,7 +322,7 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     water.k_d = waterBlue;     // diffuse
     water.k_a = water.k_d;     // ambient
     water.k_r = black;         // specular (reflection)
-    water.k_rg = white / 4.0;  // reflected ray colour. white = mirror
+    water.k_rg = white / 2.0;  // reflected ray colour. white = mirror
     water.n = 0.0f;            // shininess coeff, 0 to 128.0 affecting r
                                // specular becomes smaller, sharper
     
@@ -342,12 +340,12 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     darkWater.k_rg = Color( 1.0f, 1.0f, 1.0f ) * 0.5;
     darkWater.n = 128.0f;
     
-    Material testWhite = Material();
-    testWhite.k_d = Color( 1.0f, 1.0f, 1.0f ) * 0.8f;
-    testWhite.k_a = testWhite.k_d;
-    testWhite.k_r = black;
-    testWhite.k_rg = Color( 1.0f, 1.0f, 1.0f );
-    testWhite.n = 0.0f;
+    Material whiteMat = Material();
+    whiteMat.k_d = white;
+    whiteMat.k_a = whiteMat.k_d;
+    whiteMat.k_r = black;
+    whiteMat.k_rg = black;
+    whiteMat.n = 0.0f;
     
     Material testBlack = Material();
     testBlack.k_d = black;
@@ -358,17 +356,17 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     // Add more materials here.
     
     // Insert into scene materials vector.
-    scene.materials = { water, pinkMat, darkWater, testWhite, testBlack };
+    scene.materials = { water, pinkMat, darkWater, whiteMat, testBlack };
 
 
 // Define point light sources.
 
     scene.ptLights.resize(1);
 
-    // big sun directional light?
-    // Position, Colour
+    // Sun.
     // PointLightSource light0 = { Vector3d(100.0, 120.0, 10.0), Color(0.553f, 0.729f, 0.867f) };
-    PointLightSource light0 = { Vector3d(100.0, 120.0, 10.0), white * 0.7f };
+    // TODO: eval col change
+    PointLightSource light0 = { Vector3d(60.0, 220.0, 90.0), white * 0.7f };
 
     scene.ptLights = { light0 };
     
@@ -378,10 +376,56 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     // plane, sphere, tri
 
     scene.surfaces.resize(5);
+    double scale = 7.0;
+    Material bodyMat = scene.materials[3];
 
     // Floor.
     auto horzPlane = new Plane( 0.0, 1.0, 0.0, 0.0, scene.materials[0] );
     
+    // Head.
+    auto head = new Sphere( Vector3d( 4.0 * scale, 6.0 * scale, 0.0 * scale ), 1.0 * scale, scene.materials[3] );
+
+    // Body
+    auto bodyLeft = new Triangle( Vector3d( 2.0 * scale, 6.0 * scale, 2.0 * scale ),
+                                  Vector3d( 0.0 * scale, 1.0 * scale, 1.0 * scale ),
+                                  Vector3d( 3.0 * scale, 5.0 * scale, 2.0 * scale ),
+                                  bodyMat );
+
+    auto bodyRight = new Triangle( Vector3d( 2.0 * scale, 6.0 * scale, -2.0 * scale ),
+                                   Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
+                                   Vector3d( 3.0 * scale, 5.0 * scale, -2.0 * scale ),
+                                   bodyMat );
+    
+    auto bodyTop1 = new Triangle( Vector3d( 2.0 * scale, 6.0 * scale, -2.0 * scale ),
+                                  Vector3d( 2.0 * scale, 6.0 * scale, 2.0 * scale ),
+                                  Vector3d( 3.0 * scale, 5.0 * scale, 2.0 * scale ),
+                                  bodyMat );
+
+    auto bodyTop2 = new Triangle( Vector3d( 2.0 * scale, 6.0 * scale, -2.0 * scale ),
+                                  Vector3d( 3.0 * scale, 5.0 * scale, 2.0 * scale ),
+                                  Vector3d( 3.0 * scale, 5.0 * scale, -2.0 * scale ),
+                                  bodyMat );
+
+    auto bodyFront1 = new Triangle( Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
+                                    Vector3d( 3.0 * scale, 5.0 * scale, -2.0 * scale ),
+                                    Vector3d( 3.0 * scale, 5.0 * scale, 2.0 * scale ),
+                                    bodyMat );
+
+    auto bodyFront2 = new Triangle( Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
+                                    Vector3d( 3.0 * scale, 5.0 * scale, 2.0 * scale ),
+                                    Vector3d( 0.0 * scale, 1.0 * scale, 1.0 * scale ),
+                                    bodyMat );
+
+    auto bodyBack1 = new Triangle( Vector3d( 2.0 * scale, 6.0 * scale, -2.0 * scale ),
+                                   Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
+                                   Vector3d( 2.0 * scale, 6.0 * scale, 2.0 * scale ),
+                                   bodyMat );
+
+    auto bodyBack2 = new Triangle( Vector3d( 2.0 * scale, 6.0 * scale, 2.0 * scale ),
+                                   Vector3d( 0.0 * scale, 1.0 * scale, -1.0 * scale ),
+                                   Vector3d( 0.0 * scale, 1.0 * scale, 1.0 * scale ),
+                                   bodyMat );
+    /*
     // Sphere.
     auto smallSphere = new Sphere( Vector3d( 75.0, 10.0, 40.0 ), 12.0, scene.materials[2] );
 
@@ -396,16 +440,23 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     
     // Sphere. Center coords, radius
     auto testBlackSphere = new Sphere( Vector3d( 25.0, 15.0, 60.0 ), 20.0, scene.materials[4] );
+    */
     
-    
-    scene.surfaces = { horzPlane, smallSphere,
+    scene.surfaces = { horzPlane, head, 
+                       bodyTop1, bodyTop2,
+                       bodyFront1, bodyFront2,
+                       bodyBack1, bodyBack2,
+                       bodyLeft, bodyRight };
+                       /*
+                        smallSphere,
                        cubePosYTri1, testWhiteSphere,
                        testBlackSphere };
+                       */
     
 // Define camera.
 
-    scene.camera = Camera( Vector3d( 150.0, 120.0, 150.0 ),  // eye
-                           Vector3d( 45.0, 22.0, 55.0 ),  // lookAt
+    scene.camera = Camera( Vector3d( 120.0, 120.0, 120.0 ),  // eye
+                           Vector3d( 55.0, 50.0, 35.0 ),  // lookAt
                            Vector3d( 0.0, 1.0, 0.0 ),  //upVector
                            (-1.0 * imageWidth) / imageHeight,  // left
                            (1.0 * imageWidth) / imageHeight,  // right
