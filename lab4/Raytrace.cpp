@@ -109,25 +109,48 @@ Color Raytrace::TraceRay( const Ray &ray, const Scene &scene,
     //***********************************************
     //*********** WRITE YOUR CODE HERE **************
     //***********************************************
-
     
+    Vector3d LOrig;
+    Vector3d L;
+    Vector3d pt = nearestHitRec.p;
+    Material mat = nearestHitRec.material;
     
-    result = nearestHitRec.material.k_d;
-    for (PointLightSource lightSrc : scene.ptLights )
+    Color phongCol;
+    Ray shadRay;
+    double kShadow = 0.0;
+    
+    for ( PointLightSource lightSrc : scene.ptLights )
     {
-        Vector3d L = ( lightSrc.position - nearestHitRec.p ).unitVector();
+        // Get color from phong lighting
+        LOrig = lightSrc.position - pt;
+        L = LOrig.unitVector();
+        phongCol = computePhongLighting(L, N, V, mat, lightSrc);
         
-        result += computePhongLighting(L, N, V, nearestHitRec.material, lightSrc);
+        // Add shadow colour
+        if ( hasShadow )
+        {
+            // for each surface
+            for ( Surface* surf : scene.surfaces )
+            {
+                shadRay = Ray( pt, LOrig );
+                shadRay.makeUnitDirection();
+                
+                // if L passes through it, add shadow to the color
+                if ( surf->shadowHit( shadRay, DEFAULT_TMIN, LOrig.length() ) )
+                {
+                    phongCol *= kShadow;
+                }
+            }
+        }
+        result += phongCol;
     }
-    
-
 
 // Add to result the global ambient lighting.
 
     //***********************************************
     //*********** WRITE YOUR CODE HERE **************
     //***********************************************
-
+    result += scene.amLight.I_a * mat.k_a;
 
 
 // Add to result the reflection of the scene.

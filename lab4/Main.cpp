@@ -135,7 +135,7 @@ int main()
 */
 
     std::cout << "All done. Press Enter to exit." << std::endl;
-    std::cin.get();
+    // TODO: uncomment // std::cin.get();
     return 0;
 }
 

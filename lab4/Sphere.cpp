@@ -12,6 +12,7 @@
 
 using namespace std;
 
+// assumes that t is never 0
 double findT( const Ray &r, double tmin, double tmax, double radius, Vector3d rTranslatedOrig )
 {
     // to find the intersection, sub the ray eqn P(t) into sphere eqn
