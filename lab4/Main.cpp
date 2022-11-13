@@ -29,8 +29,8 @@ static constexpr int hasShadow1 = true;
 static constexpr std::string_view outImageFile1 = "out1.png";
 
 // Constants for Scene 2.
-static constexpr int imageWidth2 = 1920;
-static constexpr int imageHeight2 = 1080;
+static constexpr int imageWidth2 = 640;
+static constexpr int imageHeight2 = 480;
 static constexpr int reflectLevels2 = 2;  // 0 -- object does not reflect scene.
 static constexpr int hasShadow2 = true;
 static constexpr std::string_view outImageFile2 = "img_scene2.png";
@@ -402,6 +402,10 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
     auto yellowBall = new Sphere( Vector3d( 9.0 * scale, ballHeight * scale, 2.0 * scale ), 1.0 * scale, scene.materials[6] );
     auto yellowBall2 = new Sphere( Vector3d( 0.0 * scale, 7.0 * scale, 22.0 * scale ), 9.0 * scale, scene.materials[6] );
     auto ballMirror = new Sphere( Vector3d( 7.0 * scale, 1.75f * scale, -5.0 * scale ), 2.25 * scale, scene.materials[3] );
+    auto shelter = new Triangle( Vector3d( -6.0 * scale, 0.0 * scale, -5.0 * scale ),
+                                 Vector3d( 0.0 * scale, 6.0 * scale, 6.0 * scale ),
+                                 Vector3d( 7.0 * scale, 11.5 * scale, 0.0 * scale ),
+                                 scene.materials[6] );
 
 // Human.
     // Head.
@@ -523,7 +527,7 @@ void DefineScene2( Scene &scene, int imageWidth, int imageHeight )
                                  shoesMat );
 
 
-    scene.surfaces = { pinkBall, yellowBall, yellowBall2,
+    scene.surfaces = { pinkBall, yellowBall, yellowBall2, shelter,
                        head, eyeL, eyeR,
                        bodyTop1, bodyTop2,
                        bodyFront1, bodyFront2,
